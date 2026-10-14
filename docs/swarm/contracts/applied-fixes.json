@@ -563,6 +563,48 @@
       "applied_by": "orchestrator",
       "verification": "编排者独立实测：改后 §三 中形如 ◇…？ 的框仍为 5 个（与「其余 5 个判断」声明一致，因该动作框本无问号），绑定 B6 不受影响；图例行已含 ◇ 判断 / ▷ 动作 / ▭ 结果 三类，与正文用符一一对应。",
       "new_sha256": "f404f17d1e961e2e3b39dc1d0de6510baef63ed39997f9cb60d9dd50ecd11098"
+    },
+    {
+      "id": "R6-05",
+      "kind": "l2_correction",
+      "source_batch": "batch-B-proposal-10-to-12",
+      "target_file": "docs/requirements/11-system-flow.md",
+      "claim": "§十 十问①「L1 的 8 步」与本图实测 9 步（1.1–1.9）不符，已改为 9 并补标步号区间。全文其余三处（front-matter、§二 自检、§十②「§9.1 L1 九步 17 条」）均作 9，仅此一处作 8。",
+      "evidence": {
+        "type": "contains",
+        "string": "L1 的 9 步（1.1–1.9）"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测：切出「## 二、L1 系统流程」小节，以 ^│  1\\.\\d  计得 9 行，与本条绑定「L1 端到端 9 步」提取器同源同值；B 组 agent 报为计数争议未自行改文档，本条由编排者复核后应用。",
+      "new_sha256": "0e3cb8974e0774632cb8e6149d848c2bc6ae323e4d5fe4de2534774207369663"
+    },
+    {
+      "id": "R6-06",
+      "kind": "l2_correction",
+      "source_batch": "batch-B-proposal-10-to-12",
+      "target_file": "docs/requirements/10-data-flow-diagram.md",
+      "claim": "载体分布小结「文件 30 条」数字本身正确（30+13+7=50），但口径未写明，易被按精确值复核者判为失准。已补口径：文件 30 = 载体列精确等于「文件」的 29 条 + F31 的「内存→文件」1 条（该流终态落盘）；并给出按精确值的四档 29/13/7/1，合计同为 50。",
+      "evidence": {
+        "type": "contains",
+        "string": "**口径明示**"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测：以 ^\\|\\s*F\\d+\\s*\\|[^|]*\\|[^|]*\\|[^|]*\\|\\s*([^|]+?)\\s*\\| 扫全表得 {内存:13, 文件:29, 网络:7, 内存→文件:1}，总 50 行；29+1=30 与原声明吻合，故判为「口径缺失」而非「算错」。",
+      "new_sha256": "fb40aced3fe0f63de1c0464f1cf94fa252a09a5a7163c0970ab6b1218e0b67fd"
+    },
+    {
+      "id": "R6-07",
+      "kind": "l2_correction",
+      "source_batch": "batch-B-proposal-10-to-12",
+      "target_file": "docs/requirements/12-user-interface-flow.md",
+      "claim": "§零「每个屏幕平均 2.2 条出边（39 条屏屏边 ÷ 18 个屏幕框 = 2.17）」同一句内给出两个不同精度（2.2 与 2.17），读者易判为自相矛盾。已统一为 2.17（39 ÷ 18 = 2.167 取两位），除数与口径说明原样保留。",
+      "evidence": {
+        "type": "contains",
+        "string": "每个屏幕平均 2.17 条出边"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立复算：39 ÷ 18 = 2.1666…，两位小数 2.17、一位小数 2.2 均属正确舍入，故问题不在算错而在同句双精度；分子 39 = 总边 43 − 非屏幕源 4，口径说明已在原文，无需改动。",
+      "new_sha256": "03746c155d0a42baeeec6b3ea5e32dc5e02369781a099511205034370c182b31"
     }
   ]
 }
