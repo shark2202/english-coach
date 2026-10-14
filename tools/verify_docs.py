@@ -325,21 +325,38 @@ def check_applied_fixes() -> None:
             superseded += 1
             continue
         target = ROOT / fx.get("target_file", "")
+        # evidence 支持**断言数组**：一条修正既要证明「新内容已落地」，
+        # 也要证明「被替换掉的旧假声明已消失」。L2 四轮实测单条断言的缺口——
+        # 只要 new_sha256 填对，拿一个必然存在的串（如新增小标题）就能让
+        # MAN001 与 FIX001 全部放行，旧声明是否还在无人验证。子 agent 当时
+        # 只能在正向与负向之间二选一，并把换下的断言写进人工 note 披露。
+        # 数组让两者同时进机器核对，note 只负责机器确实覆盖不到的部分。
         ev = fx.get("evidence", {})
-        kind, needle = ev.get("type", ""), ev.get("string", "")
-        if kind not in ("contains", "not_contains") or not needle:
-            fail(fid, "FIX002", f"证据定义无效：{ev}")
+        evs = ev if isinstance(ev, list) else [ev]
+        if not evs:
+            fail(fid, "FIX002", f"证据定义无效：{fx.get('evidence')!r}（空列表）")
+            continue
+        bad = [e for e in evs
+               if not isinstance(e, dict)
+               or e.get("type") not in ("contains", "not_contains")
+               or not e.get("string")]
+        if bad:
+            fail(fid, "FIX002", f"证据定义无效：{bad[0]}")
             continue
         if not target.exists():
             fail(fid, "FIX001", f"目标文件不存在：{fx.get('target_file')}")
             continue
-        present = needle in target.read_text(encoding="utf-8")
-        if kind == "contains" and not present:
+        body = target.read_text(encoding="utf-8")
+        missed = []
+        for e in evs:
+            present = e["string"] in body
+            if (e["type"] == "contains" and not present) or \
+               (e["type"] == "not_contains" and present):
+                missed.append(("缺少" if e["type"] == "contains" else "仍含")
+                              + f"「{e['string'][:40]}」")
+        if missed:
             fail(fid, "FIX001",
-                 f"声称已修但未落地：{fx.get('target_file')} 不含「{needle[:40]}」")
-        elif kind == "not_contains" and present:
-            fail(fid, "FIX001",
-                 f"声称已修但未落地：{fx.get('target_file')} 仍含「{needle[:40]}」")
+                 f"声称已修但未落地：{fx.get('target_file')} " + "；".join(missed))
         else:
             verified += 1
     note = f"，{superseded} 条已被后续修正取代（历史保留，不参与核对）" if superseded else ""
@@ -394,6 +411,12 @@ def declared_hashes() -> dict[str, set[str]]:
         warn(FIX_LEDGER.name, "FIX002", f"台账 JSON 非法，无法采集新指纹：{e}")
         return out
     for fx in data.get("fixes", []):
+        # 已被后续修正取代的历史条目**不得再授权**。L2 四轮实测：只保留一条
+        # 带 superseded_by 的条目，其 new_sha256 仍被采信，MAN001 因此放行——
+        # 也就是说「作废声明」本身可以被用来洗白。台账保留历史是为了记录发生过
+        # 什么，但授权只属于仍然生效的那一条。
+        if fx.get("superseded_by"):
+            continue
         h = fx.get("new_sha256")
         if h and fx.get("target_file"):
             out.setdefault(fx["target_file"], set()).add(h)
@@ -554,7 +577,9 @@ TARGETED: list[tuple[str, str, str, str]] = [
      "len(re.findall(r'^\\s*-\\s\\*\\*EX\\d+\\*\\*｜', t, re.M))", '异常路径条数'),
     ('17-use-case.md', '(\\d+) 条以「转决策树 §X」收口',
      "len(re.findall(r'^\\s*-\\s\\*\\*(?:AC|EX)\\d+\\*\\*｜[^\\n]*决策树', t, re.M))", '转决策树收口的分支数'),
-# ── 来自 proposals/batch-A-04-to-07.json 与 batch-B-10-to-12.json；编排者独立复算 19/19 一致（声明=实测 + 改声明可测 + 删正文任一行可测）。
+# ── 来自 proposals/batch-A-04-to-07.json（A 组 6 条，B5 拆为 min/max 后 7 条）
+#    与 batch-B-10-to-12.json（B 组 25 条），另加本轮 3 条新绑定，合计 36 条。
+#    编排者逐条独立复算，方式为三方一致：声明=实测 / 改声明可测 / 删正文任一行可测。
 #    B5「均为 2 值」原提案用 max，实测漏报（某条件掉到 1 值仍判过），
 #    已按「全等」真义拆为 min/max 两条。04 两条为本轮修正文档后新增。 ──
     ('04-state-table.md', '状态表——(\\d+) 个对象',
@@ -624,7 +649,13 @@ TARGETED: list[tuple[str, str, str, str]] = [
     ('04-state-table.md', '排除 (\\d+) 个对象',
      "sum(len(c.split('/')) for c in [l.split('|')[1] for l in t.split('| 排除对象 | 理由 |')[1].split('**建模口径偏离')[0].splitlines() if l.startswith('| ') and '---' not in l])", '§零 排除表实枚举对象数（含「/」并列展开，术语/语块为本轮补入）'),
     ('04-state-table.md', '全表共 \\*\\*(\\d+)\\*\\* 个「无」格',
-     "len(re.findall(r'(?<=\\| )无(?= \\||$)', t))", '全表「无」格数（零宽口径；str.count 会因相邻格共用竖线漏计 20 处）'),]
+     "len(re.findall(r'(?<=\\| )无(?= \\||$)', t))", '全表「无」格数（零宽口径；str.count 会因相邻格共用竖线漏计 20 处）'),
+# ── L2 四轮抓出的 G3：min/max 只取极值，从不数条件行数。删掉 C2 行或把它改名，
+#    剩下两行仍是 2 值，min=max=2，「3 个条件均为 2 值」已假而门禁全绿。
+#    本条数条件行数，把「有几个条件」也纳入契约；为此把文档里的中文「三个」
+#    改成阿拉伯「3 个」——中文数字无法被 claim_regex 捕获，声明形同虚设。 ──
+    ('06-decision-table.md', r'\*\*(\d+) 个\*\*条件均为',
+     "len([len(re.findall(r'·', l)) for l in t.split('## 一、DT-1')[1].split('**简化前完整表**')[0].splitlines() if l.startswith('| C')])", 'DT-1 条件行数（堵住删行/改名两种逃逸）'),]
 
 
 def _comp_rows(t: str) -> int:
@@ -662,7 +693,9 @@ def check_targeted_declarations() -> None:
         if not p.exists():
             # 前置条件缺失用 CNT0xx 族，与「声明与实测不符」的 CNT006 区分开——
             # 否则绑定表自检按 CNT006 判定活性时，会被这条前置告警冒充成「活的」
-            warn(fname, "CNT008", "文件不存在，定点声明绑定无法执行")
+            # 文件不存在 = 本次无法核查，走 UNCHECKED 而非 warn。
+            # 同 L2 抓到的免罪符：告警不改变退出码，文档整份被删也能「全绿」。
+            unchecked(fname, "CNT000", "文件不存在，定点声明绑定无法执行")
             continue
         text = p.read_text(encoding="utf-8")
         m = re.search(pat, text)
@@ -676,13 +709,15 @@ def check_targeted_declarations() -> None:
             continue
         declared_n = int(m.group(1))
         if declared_n > 0 and actual_n == 0:
-            # 声明为正而实测为 0，几乎总是「提取器锚点失效」（小节改名、被搬走）
-            # 而不是「文档内容真的清零了」。报 CNT008 而不是 CNT006——
-            # 误报率高的门禁会被整体忽略（告警疲劳比漏报更危险），
-            # 而这 35 条绑定里有 25 条依赖小节标题切片，锚点是它们的真实故障面。
-            warn(fname, "CNT008",
-                 f"「{label}」声明 {declared_n} 但提取器取到 0——小节锚点可能已失效，"
-                 "请检查 claim_regex / extractor 里的标题锚点")
+            # 这里**必须**判 FAIL，不能降级为告警。曾经的 CNT008 理由是
+            # 「锚点失效比内容清零更常见」——但两者在代码看来签名完全相同
+            # （declared>0, actual=0），无法区分，于是这条规则变成了免罪符：
+            # 摧毁得越彻底，越确定触发告警而不是失败。L2 四轮实测复现：把 10 的
+            # 50 条数据流全部改名后，正文实存归零，门禁仍打印「✅ 全绿」exit 0。
+            # 真正的「锚点失效」另有通道：声明本身抓不到时走 CNT000/UNCHECKED。
+            fail(fname, "CNT008",
+                 f"「{label}」声明 {declared_n} 但正文实测 0——内容被清空，或提取器的"
+                 f"小节锚点已失效（两者签名相同，不可区分，一律按失败处理）")
             continue
         if declared_n != actual_n:
             fail(fname, "CNT006", f"声明 {label} {declared_n}，正文实测 {actual_n}")
@@ -693,10 +728,78 @@ def check_targeted_declarations() -> None:
 
 
 # ── 主流程 ────────────────────────────────────────────────────────────
+def _strict_requested(argv: list[str]) -> bool:
+    """--strict 的解析单独成函数，才能被单元断言直接测。
+    此前它内联在 main() 里，自审只能靠整跑 main() 来间接验证——而整跑
+    main() 的退出码会被沙箱里其它无关失败撑成 1，变异测试实测该变异逃逸。"""
+    return "--strict" in argv
+
+
+def _extractor_moves(expr: str, text: str) -> bool:
+    """删掉正文任意一行后，提取器的实测值是否变化——即它是否对**正文**敏感。
+
+    这是与「改声明数字」互补的活性维度：后者证明比较器是活的，前者才证明
+    提取器不是常量。L2 四轮据此注入 "50"/"7"/"9" 三条常量提取器，
+    旧的自审报「72/72 全部活的」。
+    """
+    try:
+        base = _run_extractor(expr, text)
+    except Exception:
+        return False
+    lines = text.splitlines(True)
+    for i in range(len(lines)):
+        try:
+            if _run_extractor(expr, "".join(lines[:i] + lines[i + 1:])) != base:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def check_worktree_clean() -> None:
+    """门禁跑的是工作区，不是提交——两者不一致时结论不可迁移。
+
+    L2 四轮抓到的方法论缺陷：编排者对着**脏工作区**跑门禁并汇报「三道门全绿」，
+    但提交 `89c45d3` 在干净克隆上其实是**红的**——README.md 的改动只存在于
+    工作区，台账 R5-1 却已声称它被修好。本项把「你验证的对象 ≠ 你交付的对象」
+    变成机器可判的事：清单覆盖的文件若在 git 里是脏的，本轮结论**只能背书工作区，
+    不能背书 HEAD**。
+
+    不直接 fail：并发会话在同一仓库工作时工作区本来就常脏，那是协作常态而非错误。
+    但必须进 UNCHECKED——门禁对未提交状态无法背书，这一点不能让「全绿」横幅盖过去。
+    """
+    import subprocess  # 局部导入：非 git 环境下本项降级为跳过，不影响其余检查
+    try:
+        out = subprocess.run(
+            ["git", "status", "--porcelain", "--",
+             "docs/requirements", "docs/swarm/contracts", "README.md"],
+            cwd=str(ROOT), capture_output=True, text=True, timeout=20,
+        )
+    except Exception as e:
+        unchecked("tools/verify_docs.py", "MAN004",
+                  f"无法读取 git 状态（{type(e).__name__}），本轮结论无法迁移到提交")
+        return
+    if out.returncode != 0:
+        unchecked("tools/verify_docs.py", "MAN004",
+                  f"git status 失败（rc={out.returncode}），本轮结论无法迁移到提交")
+        return
+    dirty = [ln for ln in out.stdout.splitlines() if ln.strip()]
+    if dirty:
+        unchecked("tools/verify_docs.py", "MAN004",
+                  f"清单范围内有 {len(dirty)} 处未提交改动"
+                  f"（首条：{dirty[0][:60]}）——本轮全绿只对工作区成立，"
+                  f"不能据此声称 HEAD 已通过")
+
+
 def main() -> int:
     if not REQ_DIR.exists():
         print(f"找不到 {REQ_DIR}")
         return 1
+
+    # --strict 曾经只活在 docstring 里：AGENTS.md 与本文件开头都承诺
+    # 「警告也视为失败」，实测两种模式输出逐字节相同、退出码无差别。
+    # 承诺存在而实现不存在，比没有承诺更糟——它让人以为告警已被拦。
+    strict = _strict_requested(sys.argv[1:])
 
     own = load_ownership()
     docs = sorted(REQ_DIR.glob("*.md"))
@@ -718,6 +821,7 @@ def main() -> int:
     check_content_manifest()
     check_dd_references(defined_dd_ids())
     check_targeted_declarations()
+    check_worktree_clean()
 
     print(f"PASS {len(OK)}")
     for m in OK:
@@ -734,6 +838,14 @@ def main() -> int:
         for m in UNCHECKED:
             print(f"  ? {m}")
 
+    return _verdict(strict)
+
+
+def _verdict(strict: bool = False) -> int:
+    """退出码的唯一判据。抽成函数是为了让它可被单元断言直接测——
+    此前它内联在 main() 末尾，自审只能靠搭沙箱端到端地试，而沙箱在变异沙箱
+    里没有 git、又带着在飞改动，两头都不成立（实测：5 处变异全被同一次崩溃
+    冒充成「已捕获」，信号为零）。"""
     if FAIL or UNCHECKED:
         if FAIL:
             print(f"\nFAIL {len(FAIL)}")
@@ -741,7 +853,13 @@ def main() -> int:
                 print(f"  ✗ {m}")
         return 1
 
-    print("\n✅ 全绿")
+    if strict and WARN:
+        print(f"\n--strict：{len(WARN)} 条告警按失败处理")
+        for m in WARN:
+            print(f"  ! {m}")
+        return 1
+
+    print("\n✅ 全绿" + (f"（{len(WARN)} 条告警；--strict 下将判失败）" if WARN else ""))
     return 0
 
 

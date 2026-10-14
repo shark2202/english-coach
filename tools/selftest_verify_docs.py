@@ -575,65 +575,243 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
         BROKEN.append("unchecked() 未写入 UNCHECKED——未核查将再次被渲染成通过")
     del vd.UNCHECKED[u0:]
 
-    # 端到端：真删一节，main() 必须非零。单元级断言挡不住「exit code 没接上」。
-    # 沙箱必须**整仓复制**（docs/ 全树 + 根级 md）：只复制 requirements/ 会让
-    # LK001 因 ../org-design.md 解析不到而报一堆假 FAIL，退出码被这些无关失败
-    # 撑成 1——那样本用例就成了空断言（变异测试实测证伪过一次）。
-    #
-    # 两条防线，缺一不可：
-    # ① main() 会往 stdout 喷整份报告并写模块级 FAIL/WARN/UNCHECKED/OK——不隔离
-    #    就会污染后续用例。实测：未隔离时 26 个变异点里有 23 个报同一个 LK001
-    #    原因，变异测试被架空成「见红即算捕获」。
-    # ② 光断言「rc != 0」不够——只要沙箱里任何一条无关检查失败，删掉 UNCHECKED
-    #    依赖的变异也能蒙混过关。改用**差分断言**：rc 必须恒等于
-    #    (1 if FAIL or UNCHECKED else 0)。把退出码与判据表达式绑在一起，
-    #    任何一侧被单独改掉都会立刻暴露。
-    import contextlib as _cl, io as _io, shutil as _sh, tempfile as _tf
-    sandbox = Path(_tf.mkdtemp())
-    snapshot = {id(m): list(m) for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK)}
-    try:
-        for name in ("README.md", "AGENTS.md"):
-            if ROOT.joinpath(name).exists():
-                _sh.copy(ROOT / name, sandbox / name)
-        _sh.copytree(ROOT / "docs", sandbox / "docs", dirs_exist_ok=True)
-        saved_root, saved_req = vd.ROOT, vd.REQ_DIR
-        try:
-            vd.ROOT = sandbox
-            vd.REQ_DIR = sandbox / "docs" / "requirements"
-            with _cl.redirect_stdout(_io.StringIO()):
-                for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
-                    del m[:]
-                base_rc = vd.main()
-                base_fail, base_unchk = len(vd.FAIL), len(vd.UNCHECKED)
-                victim = vd.REQ_DIR / "10-data-flow-diagram.md"
-                t10 = victim.read_text(encoding="utf-8")
-                seg = t10.split("## 二、确定流程")[1].split("## 三、")[0]
-                victim.write_text(t10.replace(seg, "\n（整节已删除）\n"), encoding="utf-8")
-                for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
-                    del m[:]
-                rc = vd.main()
-                got_fail, got_unchk = len(vd.FAIL), len(vd.UNCHECKED)
-        finally:
-            vd.ROOT, vd.REQ_DIR = saved_root, saved_req
+    # 判定逻辑必须能被**直接**断言。此前这里搭沙箱跑 main()，两头都不成立：
+    # 沙箱取工作区时带着在飞改动（MAN001 如实报红，基线永不绿），取提交态时
+    # 又会漏掉尚未提交的绑定；更要命的是在变异沙箱里没有 git，git archive 直接
+    # 抛错——实测 5 处新变异全被这**同一次崩溃**冒充成「已捕获」，信号为零。
+    # 故改为：退出码判据用单元断言覆盖（无文件、无 git 依赖），
+    # 「整节被删 → 声明消失 → 门禁知道自己没核查」用单文件场景覆盖。
+    import contextlib as _cl, io as _io, shutil, subprocess as _sp, tempfile as _tmp
 
-        if base_rc != 0 or base_fail or base_unchk:
-            BROKEN.append(f"未核查通道用例自身失真：整仓副本基线就非零"
-                          f"（rc={base_rc} FAIL={base_fail} UNCHECKED={base_unchk}）")
-        elif got_unchk == 0:
-            BROKEN.append("删掉整节后 UNCHECKED 仍为 0：声明随节消失时门禁根本"
-                          "没意识到自己没核查")
-        elif rc != (1 if (got_fail or got_unchk) else 0):
-            BROKEN.append(f"退出码与判据脱钩：rc={rc}，而 "
-                          f"FAIL={got_fail} UNCHECKED={got_unchk} 应推出 "
-                          f"{1 if (got_fail or got_unchk) else 0}")
+    def _with_state(fails, unchked, warns=()):
+        """在给定判定状态下求退出码，不触碰真实检查结果。"""
+        snapshot = {id(m): list(m) for m in (vd.FAIL, vd.WARN, vd.UNCHECKED)}
+        try:
+            for m, v in ((vd.FAIL, fails), (vd.WARN, warns), (vd.UNCHECKED, unchked)):
+                m[:] = list(v)
+            with _cl.redirect_stdout(_io.StringIO()):
+                return vd._verdict(False), vd._verdict(True)
+        finally:
+            for m in (vd.FAIL, vd.WARN, vd.UNCHECKED):
+                m[:] = snapshot[id(m)]
+
+    clean_rc, clean_strict = _with_state([], [], [])
+    fail_rc, _ = _with_state(["x"], [], [])
+    unchk_rc, _ = _with_state([], ["y"], [])
+    warn_rc, warn_strict_rc = _with_state([], [], ["z"])
+    if clean_rc == 0 and fail_rc == 1 and unchk_rc == 1:
+        PASSED.append("退出码判据：只有未核查（无 FAIL）时也判失败——"
+                      "「没查」不得被渲染成「查过且没事」")
+    else:
+        BROKEN.append(f"退出码判据失灵：干净={clean_rc} 仅FAIL={fail_rc} "
+                      f"仅未核查={unchk_rc}（期望 0/1/1）")
+    if warn_rc == 0 and warn_strict_rc == 1:
+        PASSED.append("--strict 确实改变退出码：默认放行告警、strict 下判失败")
+    else:
+        BROKEN.append(f"--strict 无效：默认={warn_rc} strict={warn_strict_rc}"
+                      f"（期望 0/1）——文档承诺的「警告也视为失败」落空")
+
+    # 整节被删（含其声明）→ 门禁必须知道自己没核查
+    _sb = Path(_tmp.mkdtemp())
+    try:
+        _victim = _sb / "10-data-flow-diagram.md"
+        _t10 = (ROOT / "docs" / "requirements" / "10-data-flow-diagram.md").read_text(encoding="utf-8")
+        _seg = _t10.split("## 二、确定流程")[1].split("## 三、")[0]
+        _victim.write_text(_t10.replace(_seg, "\n（整节已删除）\n"), encoding="utf-8")
+        _saved = vd.REQ_DIR
+        _snap = {id(m): list(m) for m in (vd.FAIL, vd.WARN, vd.UNCHECKED)}
+        try:
+            vd.REQ_DIR = _sb
+            for m in (vd.FAIL, vd.WARN, vd.UNCHECKED):
+                del m[:]
+            with _cl.redirect_stdout(_io.StringIO()):
+                vd.check_targeted_declarations()
+                rc = vd._verdict(False)
+            msgs = list(vd.UNCHECKED)
+        finally:
+            vd.REQ_DIR = _saved
+            for m in (vd.FAIL, vd.WARN, vd.UNCHECKED):
+                m[:] = _snap[id(m)]
+        if any("L1 流程数" in m for m in msgs) and rc == 1:
+            PASSED.append("删掉整节（含其声明）后门禁判「未核查」并非零退出")
         else:
-            PASSED.append("删掉整节（含其声明）后 main() 非零退出——空文档不得判全绿")
-    except Exception as e:  # 崩溃不得冒充通过，也不得冒充捕获
-        BROKEN.append(f"未核查通道端到端用例崩溃：{type(e).__name__}: {e}")
+            BROKEN.append(f"删掉整节后未核查未生效：UNCHECKED={msgs[:2]} rc={rc}")
     finally:
-        _sh.rmtree(sandbox, ignore_errors=True)
-        for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
-            m[:] = snapshot[id(m)]
+        shutil.rmtree(_sb, ignore_errors=True)
+
+    # ── 提取器活性（不是「比较器活性」）──
+    # 上面的活性检查只做「改声明数字 → 必须报 CNT006」。若提取器恒等于声明值，
+    # 改声明后 declared≠constant 仍会 FAIL，检查照样通过——它证明的是**比较器**
+    # 是活的，不是**提取器**是活的。L2 四轮据此注入 3 条常量提取器
+    # （"50"/"7"/"9"，对内容零敏感），selftest 报「72/72 全部活的」。
+    # 本项补上真正的问题：提取器对**正文**变化是否敏感。
+    print("\n— 提取器活性自检（删正文行 → 实测值必须变） —")
+    # 聚合语义（min/max/去重）对「删一个成员」天然不敏感，这是数学事实不是缺陷。
+    # 但豁免必须逐条登记理由，且理由本身要被实跑验证——否则豁免清单会变成
+    # 「把看不懂的提取器都塞进来的垃圾桶」，正是 L2 抓到的那类假通过。
+    INERT_BY_DESIGN = {
+        ("13-display-action-response.md", "去重后的 ELMT 元素表数"):
+            "去重语义：每个 ELMT 编号在文中出现 ≥2 次（定义处与引用处分离），"
+            "删单行不改变集合。活性改由「注入一个新编号 → 集合变大」承载。",
+        ("06-decision-table.md", "DT-1 三条件选择数下界（min 端：某条件掉档即 FAIL）"):
+            "min 是聚合算子：对成员删行不改变极值（删掉 C2 后 C1/C3 仍各 2 值）。"
+            "活性改由「把某成员的值改小 → min 下降」承载。",
+    }
+    req_real = ROOT / "docs" / "requirements"
+    sens, declared_inert, stale, unknown = 0, 0, [], []
+    for fname, pat, expr, label in vd.TARGETED:
+        src = req_real / fname
+        if not src.exists():
+            continue
+        text = src.read_text(encoding="utf-8")
+        try:
+            base = vd._run_extractor(expr, text)
+        except Exception:
+            unknown.append(f"{fname}「{label}」：提取器抛错，无法判活性")
+            continue
+        moved = vd._extractor_moves(expr, text)
+        key = (fname, label)
+        if moved:
+            sens += 1
+            if key in INERT_BY_DESIGN:
+                stale.append(f"{fname}「{label}」：已对删行敏感，豁免理由过期应删除")
+        elif key in INERT_BY_DESIGN:
+            declared_inert += 1
+        else:
+            unknown.append(f"{fname}「{label}」：删任意单行实测值都不变——"
+                           "疑似常量提取器，须登记豁免理由或改写")
+    for m in stale + unknown:
+        BROKEN.append(f"提取器活性：{m}")
+    if not stale and not unknown:
+        PASSED.append(f"提取器活性：{sens} 条对正文敏感，"
+                      f"{declared_inert} 条聚合语义已登记豁免理由")
+
+    # 豁免理由必须可执行，不能只是一段说明文字
+    t13 = (req_real / "13-display-action-response.md").read_text(encoding="utf-8")
+    ex_elmt = "len(set(re.findall(r'ELMT_[0-9]{4}', t)))"
+    injected = vd._run_extractor(ex_elmt, t13 + "\n| ELMT_9999 | 新增测试行 |\n")
+    if injected > vd._run_extractor(ex_elmt, t13):
+        PASSED.append("ELMT 去重绑定的豁免理由可执行：注入新编号后集合确实变大")
+    else:
+        BROKEN.append("ELMT 去重绑定的豁免理由无法执行：注入新编号后集合未变大")
+
+    t06 = (req_real / "06-decision-table.md").read_text(encoding="utf-8")
+    ex_min = ("min([len(re.findall(r'·', l)) for l in t.split('## 一、DT-1')[1]"
+              ".split('**简化前完整表**')[0].splitlines() if l.startswith('| C')]) + 1")
+    _l06 = t06.splitlines(True)
+    _i = next((k for k, l in enumerate(_l06) if l.startswith("| C3")), None)
+    if _i is not None:
+        _mut = "".join(_l06[:_i] + [_l06[_i].replace(" · ", " ")] + _l06[_i + 1:])
+        if vd._run_extractor(ex_min, _mut) < vd._run_extractor(ex_min, t06):
+            PASSED.append("min 端绑定的豁免理由可执行：把 C3 改成单值后 min 确实下降")
+        else:
+            BROKEN.append("min 端绑定的豁免理由无法执行：把 C3 改成单值后 min 未下降")
+
+    # ── 本轮新增行为的负例（缺了它们，变异测试实测 5 处逃逸）──
+    print("\n— 本轮新增行为自检 —")
+
+    def _run_cntonly(files):
+        """把定点绑定检查跑在一组指定文件上，返回 (FAIL, UNCHECKED) 增量。"""
+        _d = Path(_tmp.mkdtemp())
+        for _n, _txt in files.items():
+            (_d / _n).write_text(_txt, encoding="utf-8")
+        _sv = vd.REQ_DIR
+        _f0, _u0 = len(vd.FAIL), len(vd.UNCHECKED)
+        try:
+            vd.REQ_DIR = _d
+            with _cl.redirect_stdout(_io.StringIO()):
+                vd.check_targeted_declarations()
+            return list(vd.FAIL[_f0:]), list(vd.UNCHECKED[_u0:])
+        finally:
+            vd.REQ_DIR = _sv
+            shutil.rmtree(_d, ignore_errors=True)
+
+    # ① CNT008 必须是 FAIL：正文被清空不得只告警
+    _t10 = (ROOT / "docs" / "requirements" / "10-data-flow-diagram.md").read_text(encoding="utf-8")
+    _gutted = re.sub(r"^(\|\s*)F(\d+)", r"\1G\2", _t10, flags=re.M)
+    if _gutted == _t10:
+        BROKEN.append("负例构造失败：未能把 10 的数据流行改名（正则失配）")
+    else:
+        _f, _u = _run_cntonly({"10-data-flow-diagram.md": _gutted})
+        if any("CNT008" in x for x in _f):
+            PASSED.append("正文被清空（实测 0）→ 判 CNT008 失败，不是免罪告警")
+        else:
+            BROKEN.append(f"正文清零未被拦：FAIL={_f[:1]} UNCHECKED={_u[:1]}")
+
+    # ② 文件整份缺失 → 未核查，不得只告警
+    _f2, _u2 = _run_cntonly({})
+    if _u2 and any("CNT000" in x for x in _u2):
+        PASSED.append("绑定目标文件整份缺失 → 进未核查通道（默认即非零退出）")
+    else:
+        BROKEN.append(f"文件缺失未进未核查通道：UNCHECKED={_u2[:1]}")
+
+    # ③ superseded 条目不得再授权
+    _led = Path(_tmp.mkdtemp()) / "applied-fixes.json"
+    _led.write_text(json.dumps({"fixes": [
+        {"id": "OLD", "target_file": "x.md", "new_sha256": "aaa", "superseded_by": "NEW"},
+        {"id": "NEW", "target_file": "x.md", "new_sha256": "bbb"},
+    ]}), encoding="utf-8")
+    _saved_led = vd.FIX_LEDGER
+    try:
+        vd.FIX_LEDGER = _led
+        _hashes = vd.declared_hashes()
+    finally:
+        vd.FIX_LEDGER = _saved_led
+    if _hashes.get("x.md") == {"bbb"}:
+        PASSED.append("已被取代的历史台账条目不再授权（作废声明不能用来洗白）")
+    else:
+        BROKEN.append(f"superseded 条目仍被采信：{_hashes.get('x.md')}")
+
+    # ④ MAN004：清单范围内有未提交改动时，门禁不得为工作区背书
+    _gr = Path(_tmp.mkdtemp())
+    try:
+        (_gr / "docs" / "requirements").mkdir(parents=True)
+        (_gr / "README.md").write_text("x\n", encoding="utf-8")
+        for _c in (["git", "init", "-q"],):
+            _sp.run(_c, cwd=str(_gr), check=True, capture_output=True)
+        _sp.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "add", "-A"],
+                cwd=str(_gr), check=True, capture_output=True)
+        _sp.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "b"],
+                cwd=str(_gr), check=True, capture_output=True)
+        _sv_root = vd.ROOT
+        _u0 = len(vd.UNCHECKED)
+        try:
+            vd.ROOT = _gr
+            with _cl.redirect_stdout(_io.StringIO()):
+                vd.check_worktree_clean()
+            _clean_unchk = len(vd.UNCHECKED) - _u0
+            (_gr / "docs" / "requirements" / "a.md").write_text("dirty\n", encoding="utf-8")
+            with _cl.redirect_stdout(_io.StringIO()):
+                vd.check_worktree_clean()
+            _dirty_unchk = len(vd.UNCHECKED) - _u0
+            _msgs = list(vd.UNCHECKED)
+        finally:
+            vd.ROOT = _sv_root
+        if _clean_unchk == 0 and _dirty_unchk > 0 and any("MAN004" in m for m in _msgs):
+            PASSED.append("MAN004：干净仓库不报，有未提交改动时进未核查通道")
+        else:
+            BROKEN.append(f"MAN004 失灵：干净时 {_clean_unchk} 条、脏时 {_dirty_unchk} 条")
+    finally:
+        shutil.rmtree(_gr, ignore_errors=True)
+    del vd.UNCHECKED[_u0:]
+
+    # ⑤ --strict 的解析：测解析函数本身。整跑 main() 不可行——沙箱里其它无关
+    #    失败会把退出码撑成 1，变异测试实测该变异逃逸（它只让 --strict 失效，
+    #    但 rc 仍因别的 FAIL 非零）。
+    if vd._strict_requested(["verify_docs.py", "--strict"]) is True and \
+            vd._strict_requested(["verify_docs.py"]) is False and \
+            vd._strict_requested(["verify_docs.py", "--strict=1"]) is False:
+        PASSED.append("--strict 的 argv 解析正确（精确匹配，不吃 --strict=1）")
+    else:
+        BROKEN.append("--strict 的 argv 解析失灵")
+
+    # ⑥ 活性扫描器本身可被证伪：拿一条常量表达式喂给它，必须判「不敏感」
+    _t10b = (ROOT / "docs" / "requirements" / "10-data-flow-diagram.md").read_text(encoding="utf-8")
+    if vd._extractor_moves("3", _t10b) is False and \
+            vd._extractor_moves("len(re.findall(r'^\\|\\s*F\\d+\\s*\\|', t, re.M))", _t10b) is True:
+        PASSED.append("活性扫描器能分辨常量与真实提取器（自身非空断言）")
+    else:
+        BROKEN.append("活性扫描器失灵：常量表达式未被判为不敏感，或真实提取器被误判")
 
     # ── 汇总 ──
     print("\n" + "=" * 62)

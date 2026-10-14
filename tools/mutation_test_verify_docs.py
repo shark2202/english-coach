@@ -62,8 +62,8 @@ MUTATIONS: list[tuple[str, str, str]] = [
     ),
     (
         "FIX001 不再核对修正证据",
-        'if kind == "contains" and not present:',
-        "if False:  # MUTANT",
+        '            if (e["type"] == "contains" and not present) or \\\n               (e["type"] == "not_contains" and present):',
+        '            if False:  # MUTANT\n                pass\n            if (e["type"] == "contains" and not present) or \\\n               (e["type"] == "not_contains" and False):',
     ),
     (
         "RM001 不再核对 README 索引",
@@ -150,8 +150,8 @@ MUTATIONS: list[tuple[str, str, str]] = [
     ),
     (
         "FIX002 不再校验证据定义",
-        'if kind not in ("contains", "not_contains") or not needle:',
-        "if False:  # MUTANT",
+        '               or e.get("type") not in ("contains", "not_contains")',
+        '               or False  # MUTANT',
     ),
     (
         "OWN002 反向检查失效",
@@ -167,6 +167,32 @@ MUTATIONS: list[tuple[str, str, str]] = [
         "退出码不再受 UNCHECKED 影响",
         "    if FAIL or UNCHECKED:",
         "    if FAIL:  # MUTANT",
+    ),
+    # ── L2 四轮指出本轮新增路径零覆盖（N10）。以下 5 处逐条对应 ──
+    (
+        "CNT008 退回告警（正文清零再次免罪）",
+        '            fail(fname, "CNT008",\n                 f"「{label}」声明 {declared_n} 但正文实测 0',
+        '            warn(fname, "CNT008",\n                 f"「{label}」声明 {declared_n} 但正文实测 0  # MUTANT',
+    ),
+    (
+        "--strict 的 argv 解析失效",
+        '    return "--strict" in argv',
+        '    return False  # MUTANT',
+    ),
+    (
+        "MAN004 不再检工作区脏度",
+        "    dirty = [ln for ln in out.stdout.splitlines() if ln.strip()]",
+        "    dirty = []  # MUTANT",
+    ),
+    (
+        "superseded 台账条目重新获得授权",
+        '        if fx.get("superseded_by"):\n            continue',
+        '        if False:  # MUTANT\n            continue',
+    ),
+    (
+        "活性扫描器把常量也判为敏感（测试方自身被中和）",
+        "    lines = text.splitlines(True)\n    for i in range(len(lines)):\n        try:\n            if _run_extractor(expr, \"\".join(lines[:i] + lines[i + 1:])) != base:\n                return True",
+        "    lines = text.splitlines(True)\n    for i in range(len(lines)):\n        try:\n            if True:  # MUTANT\n                return True",
     ),
 ]
 
@@ -194,28 +220,37 @@ def build_sandbox(dst: Path) -> Path:
 
 
 def main() -> int:
-    original = (ROOT / "tools" / "verify_docs.py").read_text(encoding="utf-8")
+    targets = {
+        "verify_docs.py": (ROOT / "tools" / "verify_docs.py").read_text(encoding="utf-8"),
+        "selftest_verify_docs.py": (ROOT / "tools" / "selftest_verify_docs.py").read_text(encoding="utf-8"),
+    }
     caught: list[str] = []
     escaped: list[str] = []
     mislocated: list[str] = []
 
-    for name, old, new in MUTATIONS:
+    for entry in MUTATIONS:
+        # 三元组（旧格式）= 变异 verify_docs.py；四元组可指定目标文件。
+        # 支持指向自审本身，是因为本轮新增的活性检查就住在 selftest 里——
+        # 只变异被测方、不变异测试方，那条检查天然无法被证伪。
+        name, old, new = entry[0], entry[1], entry[2]
+        target = entry[3] if len(entry) > 3 else "verify_docs.py"
         # 定位守护：目标片段必须**恰好出现一次**。
         # 三轮 L2 指出 replace(old,new,1) 只改第一处、命中哪处取决于函数顺序，
         # 且无断言守护——实测中「CNT006 定点声明」这一变异实际改到了
         # check_ownership 里同名的那一行，标签正确、位置错误，等于没测。
+        original = targets[target]
         n = original.count(old)
         if n != 1:
             mislocated.append(
-                f"{name} —— 定位失败：目标片段在源码中出现 {n} 次（应为 1），变异可能打错位置")
+                f"{name} —— 定位失败：目标片段在 {target} 中出现 {n} 次（应为 1），变异可能打错位置")
             continue
         with tempfile.TemporaryDirectory(prefix="vd-mut-") as td:
             sb = Path(td)
             st = build_sandbox(sb)
-            (sb / "tools" / "verify_docs.py").write_text(
+            (sb / "tools" / target).write_text(
                 original.replace(old, new, 1), encoding="utf-8")
             p = subprocess.run([sys.executable, str(st)], capture_output=True,
-                               text=True, cwd=sb, timeout=300)
+                               text=True, cwd=sb, timeout=600)
             out = p.stdout + p.stderr
 
         crashed = p.returncode != 0 and CAUGHT_MARK not in out
@@ -229,8 +264,9 @@ def main() -> int:
             caught.append(f"{name} → 自审变红（{first.lstrip('✗ ')[:46]}）")
 
     # 沙箱法的前提是仓库文件不受影响——这是本版最重要的自证
-    assert (ROOT / "tools" / "verify_docs.py").read_text(encoding="utf-8") == original, \
-        "变异过程污染了仓库源码"
+    for fname, orig in targets.items():
+        assert (ROOT / "tools" / fname).read_text(encoding="utf-8") == orig, \
+            f"变异过程污染了仓库源码：{fname}"
 
     print("变异测试：逐处破坏判定逻辑，检查自审套件是否会红\n" + "=" * 66)
     print("方法：复制到 /tmp 沙箱后再变异——全程不改写仓库源码（崩溃不会留下损坏的门禁）")
