@@ -256,6 +256,117 @@
       "applied_by": "orchestrator",
       "verification": "先核实 15 §四 与 §5.4 确载该执行过程与结论，才更新台账；未据域 agent 自述直接标 ✅",
       "new_sha256": "9f52a02b15f967fc0bc13fb65d26d1859d668c7a9850c8ce1519ef90775ebd69"
+    },
+    {
+      "id": "G-01",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/swarm/ORG-SPEC.md",
+      "claim": "治理层声明失准：原文称「L1 在运行中当场拦下悬空 DD 引用（REF001）」，与 RETRO §1.1/§5.4 把 DD411 记为 L2 抓出相矛盾（读者会误以为首轮那个缺陷是 L1 抓的）。同时把「声明计数仅覆盖 01/02/03」一条改为二轮 L2 回归测试证明的更强结论：对 11/12/13 算术零覆盖",
+      "evidence": {
+        "type": "contains",
+        "string": "算术自洽性对 11/12/13 等 14 份文档零覆盖"
+      },
+      "new_sha256": "cc7e223caeb0ec3a4a246a004b451d53cfa2cbd0c1c7c93168e3fc18d859d9f2",
+      "applied_by": "orchestrator",
+      "governance_note": "该文件在本轮之前不在内容指纹清单内——二轮 L2 实测指出 MAN001 的动机是 RETRO-01 的越权，而 RETRO-01 恰不在覆盖范围内。本条为补录：清单登记本轮改动**之前**的指纹，本条申报其后的新指纹，轨迹完整"
+    },
+    {
+      "id": "G-02",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/swarm/RETRO-01.md",
+      "claim": "新增 §六 记录二轮 L2 的 FAIL 结论与其对门禁自身的证伪（变异测试证明 3 个用例为空断言、MAN001 覆盖不到催生它的文件）；同时撤回本文件 §5.3 那句失准的「30 项用例覆盖每条检查的正例与负例」",
+      "evidence": {
+        "type": "contains",
+        "string": "## 六、二轮 L2"
+      },
+      "new_sha256": "7edaec98aab9c4fc7d0722f2cd03b35e38a3ed46338ca062ef09c63b0ecb4924",
+      "applied_by": "orchestrator",
+      "governance_note": "该文件在本轮之前不在内容指纹清单内——二轮 L2 实测指出 MAN001 的动机是 RETRO-01 的越权，而 RETRO-01 恰不在覆盖范围内。本条为补录：清单登记本轮改动**之前**的指纹，本条申报其后的新指纹，轨迹完整"
+    },
+    {
+      "id": "G-03",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "README.md",
+      "claim": "补「蜂群治理产物」索引（ORG-SPEC / RETRO-01 / 契约与两份台账 / 校验器与自审），并把 13 的描述从「12 个屏幕」更正为 13 个（逐屏 31 + 跨屏全局 2）",
+      "evidence": {
+        "type": "contains",
+        "string": "**蜂群治理产物**"
+      },
+      "new_sha256": "139560c841977aba8535c63f297b362e6d1cbe66e329269148781f52f5e25a36",
+      "applied_by": "orchestrator",
+      "governance_note": "该文件在本轮之前不在内容指纹清单内——二轮 L2 实测指出 MAN001 的动机是 RETRO-01 的越权，而 RETRO-01 恰不在覆盖范围内。本条为补录：清单登记本轮改动**之前**的指纹，本条申报其后的新指纹，轨迹完整"
+    },
+    {
+      "id": "G-04",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "AGENTS.md",
+      "claim": "判定门清单补 MAN001 申报义务与校验器自审条目（改过校验器必须先自审），使「默认蜂群执行」的工作流与实际门禁一致",
+      "evidence": {
+        "type": "contains",
+        "string": "tools/selftest_verify_docs.py"
+      },
+      "new_sha256": "e1980f10b8f58f68b70dca3a4340f79f559309a547b68b6463d80d08472323d2",
+      "applied_by": "orchestrator",
+      "governance_note": "该文件在本轮之前不在内容指纹清单内——二轮 L2 实测指出 MAN001 的动机是 RETRO-01 的越权，而 RETRO-01 恰不在覆盖范围内。本条为补录：清单登记本轮改动**之前**的指纹，本条申报其后的新指纹，轨迹完整"
+    },
+    {
+      "id": "R2-04",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/04-state-table.md",
+      "claim": "二轮 L2 判定不达标：§一 对象索引仍写「同步游标｜三态显式化｜DD703」，与本文档 §八 的 4×4 矩阵（含同步失败）及已改为四态的 DD703 直接矛盾——即首轮已修好的 DD703 字段名缺陷的镜像句，四态回写只做了 03 那一面",
+      "evidence": {
+        "type": "not_contains",
+        "string": "同步游标 | 三态显式化"
+      },
+      "new_sha256": "d2835c3aa01b51a556108f2a352e0161f4d5b843ef773ee365e0a9b756f5c1a2",
+      "applied_by": "orchestrator",
+      "verification": "先核实判别器给出的行号与内容属实（04:28 与本文档 §八 矩阵矛盾、11:458 的 40 无法复现、12:78 的 18−13≠4），再动手改；改动后跑完整门禁确认无新增 FAIL"
+    },
+    {
+      "id": "R2-11",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/11-system-flow.md",
+      "claim": "二轮 L2 新发现：§八 B 段警告表写「§九 逐步登记 40 个步骤的失败模式」，而 §九 实为 31 条补偿条目，且按文中任一口径（有补偿 14 + 继承 11 + L1 九步）展开也只有 34。40 需要一条文中不存在的计数规则——与刚修掉的「32 条」同型同位置",
+      "evidence": {
+        "type": "not_contains",
+        "string": "逐步登记 40 个步骤"
+      },
+      "new_sha256": "02af87d9a8e7eddb51515b1124bb06d930a5d193a0fb25f869419452b2bf2240",
+      "applied_by": "orchestrator",
+      "verification": "先核实判别器给出的行号与内容属实（04:28 与本文档 §八 矩阵矛盾、11:458 的 40 无法复现、12:78 的 18−13≠4），再动手改；改动后跑完整门禁确认无新增 FAIL"
+    },
+    {
+      "id": "R2-12",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/12-user-interface-flow.md",
+      "claim": "二轮 L2 新发现：§零 自检写「18 个屏幕框 − 13 个规范屏幕 = 4 套双形态布局」——18−13=5，算式与结论不符，且补注「S9/S10 落入 M7」会让缺口更大而非补平。同时修正挂账 5 的过时表述（A10 三态旧措辞早已修复，该挂账已结）并新增挂账 7：全仓缺「规范屏幕 ↔ 屏幕框」映射表，该差值无法逐屏核实",
+      "evidence": {
+        "type": "contains",
+        "string": "登记为 §十 挂账 7"
+      },
+      "new_sha256": "d56dbcd8c53bc8eaf152f77f3bb39171061780feadb49d18b6467cfbb1f3b39b",
+      "applied_by": "orchestrator",
+      "verification": "先核实判别器给出的行号与内容属实（04:28 与本文档 §八 矩阵矛盾、11:458 的 40 无法复现、12:78 的 18−13≠4），再动手改；改动后跑完整门禁确认无新增 FAIL"
+    },
+    {
+      "id": "G-05",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "AGENTS.md",
+      "claim": "二轮 L2 证伪自审套件后，工作流须把变异测试列为准入条件；同时目录速查的检查项与用例数过时。判定门清单与常用命令均已更新",
+      "evidence": {
+        "type": "contains",
+        "string": "tools/mutation_test_verify_docs.py"
+      },
+      "new_sha256": "ffcdf04aa256aebd1ae99e4e29bc1b8bfaf84af69a11b982e08d84f0aacf90dd",
+      "applied_by": "orchestrator"
     }
   ]
 }

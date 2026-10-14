@@ -69,24 +69,23 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
         print("✗ 契约归属加载失败，OWN 测试无从谈起")
         return 1
 
-    print("— 引号归一化 —")
-    for variant in ('batch: "batch-08-ui-dar"', "batch: 'batch-08-ui-dar'", "batch: batch-08-ui-dar"):
-        expect_pass(
-            f"parse_frontmatter 接受写法 {variant.split(':', 1)[1].strip()}",
-            lambda v=variant: vd.parse_frontmatter(f"---\n{v}\n---\n").get("batch") == "batch-08-ui-dar",
-        )
-
-    print("\n— OWN001/OWN002 写入范围 —")
+    print("— 引号归一化（经 OWN001 端到端触发，不做裸布尔断言） —")
     # 归属随契约变化（修正批次会接管文件），故从契约现读，不写死批次 id
     target_name = "12-user-interface-flow.md"
     right = own[target_name]
     wrong = next(b for b in own.values() if b != right)
-    p = doc(target_name, f'batch: "{right}"')
-    expect_pass("归属正确的带引号写法", lambda: vd.check_ownership(p, own))
-    expect_pass(
-        "归属正确的不带引号写法",
-        lambda: vd.check_ownership(doc(target_name, f"batch: {right}"), own),
-    )
+
+    # ⚠️ 本节曾把 `parse_frontmatter(...) == "batch-08-ui-dar"` 这种裸布尔表达式
+    # 直接传给 expect_pass——它从不触碰 vd.FAIL，删掉 unquote() 也照样打 ✓
+    # （二轮 L2 变异测试证伪）。改为：写一份文件，让 OWN001 真正跑一遍，
+    # 只有「解析结果与契约归属一致」时才会放行。删掉 unquote() → OWN001 FAIL → 用例红。
+    for variant, label in (('batch: "{}"', "双引号"), ("batch: '{}'", "单引号"), ("batch: {}", "无引号")):
+        expect_pass(
+            f"{label}写法均被 OWN001 判为归属正确",
+            lambda v=variant: vd.check_ownership(doc(target_name, v.format(right)), own),
+        )
+
+    print("\n— OWN001/OWN002 写入范围 —")
     expect_fail(
         "冒名顶替他批次",
         "OWN001",
@@ -108,9 +107,16 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
         lambda: vd.check_ownership(doc("99-未授权新文件.md", f'batch: "{right}"'), own),
     )
     expect_fail(
-        "空契约不得误判全部越权",
+        "契约 owns 清单未覆盖此文件 → OWN002（正向断言：覆盖不足必须报）",
         "OWN002",
         lambda: vd.check_contract_covers_all({"03-data-dictionary.md": "batch-x"}),
+    )
+    expect_pass(
+        "契约 owns 清单完整时不得误报",
+        lambda: vd.check_contract_covers_all(
+            {p.name: b for p, b in ((Path(f), own[Path(f).name])
+                                    for f in vd.REQ_DIR.glob("*.md"))}
+        ),
     )
 
     print("\n— FM001 frontmatter 必填 —")
@@ -287,10 +293,81 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
         (req_tmp / "bad.md").write_text("---\nstatus: \"草稿\"\n---\n\n取值见 DD411 与 DD703\n", encoding="utf-8")
         expect_fail("引用不存在的编号", "REF001", lambda: vd.check_dd_references(dd_defs))
         (req_tmp / "bad.md").unlink()
-        (req_tmp / "todo.md").write_text("---\nstatus: \"草稿\"\n---\n\nDD9xx 待定义，暂缺\n", encoding="utf-8")
+        # ⚠️ 本用例曾用 `DD9xx` 做数据——`DD\d{3}` 根本匹配不到它，
+        # 于是「删掉整条 skip 分支也照样打 ✓」（二轮 L2 变异测试证伪）。
+        # 改为真正的对照：同一个悬空编号 DD999，带「待定义」放行、不带就拦。
+        todo = req_tmp / "todo.md"
+        todo.write_text("---\nstatus: \"草稿\"\n---\n\nDD999 待定义，暂缺\n", encoding="utf-8")
         expect_pass("显式待定义不算悬空", lambda: vd.check_dd_references(dd_defs))
+        todo.write_text("---\nstatus: \"草稿\"\n---\n\n取自 DD999 的派生值\n", encoding="utf-8")
+        expect_fail("同一个编号去掉「待定义」即须拦截", "REF001", lambda: vd.check_dd_references(dd_defs))
     finally:
         vd.REQ_DIR = orig_req
+
+    print("\n— RM001 README 索引完整性 —")
+    # 二轮 L2 指出：RM001 是 AGENTS.md 亲口称「当前最容易踩的一条」，却零测试。
+    readme = TMP / "README.md"
+    orig_readme = vd.ROOT
+    try:
+        vd.ROOT = TMP
+        readme.write_text("# t\n", encoding="utf-8")          # 索引为空 → 每个文件都未登记
+        expect_fail("README 未登记需求文档 → RM001", "RM001", vd.check_readme_index)
+        readme.write_text(
+            "# t\n" + "".join(f"- [{f.name}](docs/requirements/{f.name})\n"
+                              for f in sorted(vd.REQ_DIR.glob("*.md"))),
+            encoding="utf-8",
+        )
+        expect_pass("README 已登记全部需求文档", vd.check_readme_index)
+        # 登记不全也必须报：抽掉最后一条
+        readme.write_text(
+            "# t\n" + "".join(f"- [{f.name}](docs/requirements/{f.name})\n"
+                              for f in sorted(vd.REQ_DIR.glob("*.md"))[:-1]),
+            encoding="utf-8",
+        )
+        expect_fail("只差一条也不能放行", "RM001", vd.check_readme_index)
+    finally:
+        vd.ROOT = orig_readme
+
+    print("\n— CNT002/004/005 二轮补齐的负例 —")
+    # 字形数 3（L0 的 └ + 两个 L2 的 ├/└）→ l2_actual = 3 - 1 = 2
+    tree = "```\nL0\n├─ a\n│  └─ b\n└─ c\n```\n"
+    ftree = doc("01-x.md", 'description: "2 个 L1 / 2 个 L2"',
+                body="## 二、\nL1-1 甲\nL1-2 乙\n## 三、\n" + tree)
+    expect_pass("特性树 L1/L2 计数相符", lambda: vd.check_declared_counts(ftree))
+    expect_fail(
+        "L1 数不符",
+        "CNT004",
+        lambda: vd.check_declared_counts(
+            doc("01-x.md", 'description: "5 个 L1 / 2 个 L2"',
+                body="## 二、\nL1-1 甲\nL1-2 乙\n## 三、\n" + tree)),
+    )
+    expect_fail(
+        "L2 数不符",
+        "CNT005",
+        lambda: vd.check_declared_counts(
+            doc("01-x.md", 'description: "2 个 L1 / 5 个 L2"',
+                body="## 二、\nL1-1 甲\nL1-2 乙\n## 三、\n" + tree)),
+    )
+    fbdd = doc("02-x.md", 'description: "3 个业务数据对象"',
+               body="## 二、BDD-1 · 甲域（语料 / 语块）\n## 三、BDD-2 · 乙域（档案）\n")
+    expect_pass("BDD 对象数相符", lambda: vd.check_declared_counts(fbdd))
+    expect_fail(
+        "BDD 对象数不符",
+        "CNT002",
+        lambda: vd.check_declared_counts(
+            doc("02-x.md", 'description: "9 个业务数据对象"',
+                body="## 二、BDD-1 · 甲域（语料 / 语块）\n## 三、BDD-2 · 乙域（档案）\n")),
+    )
+
+    print("\n— MAN002 清单 JSON 非法 —")
+    man_bad = TMP / "man-bad.json"
+    man_bad.write_text("{ not json", encoding="utf-8")
+    orig_man2 = vd.MANIFEST
+    try:
+        vd.MANIFEST = man_bad
+        expect_fail("内容指纹清单 JSON 非法 → MAN002", "MAN002", vd.check_content_manifest)
+    finally:
+        vd.MANIFEST = orig_man2
 
     # ── 汇总 ──
     print("\n" + "=" * 62)
