@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Node（工具链/将来 Web 壳）
+node_modules/
+
+# Flutter / Dart（Phase 1 起）
+.dart_tool/
+build/
+*.lock.tmp
+.pub-cache/
+
+# 本仓内做运行时测试产生的账本/语料数据不入库
+ledger-runtime/
+*.log
+
+# 本地环境
+.env
+.env.*
