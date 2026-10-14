@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/proces
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（步骤与交接契约待 goal-keeper 确认；系统级响应细节由批次 9 补入系统流程）
+batch: "batch-07-processflow-usecase"
 ---
 
 # 处理流程 v0.1

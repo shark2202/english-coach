@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/state-
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（「无」格与复活路径待干系人逐一确认；处理流程/用例触发事件待批次 7 补全）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 状态表 v0.1

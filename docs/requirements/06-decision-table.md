@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/decisi
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（卡内完成标准要求「选择集合经干系人确认」，单人自用下待 goal-keeper 过）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 决策表 v0.1

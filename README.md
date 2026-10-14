@@ -8,13 +8,17 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 
 设计阶段（未实现）。**需求可视化分析进行中**（RML 22 模型，完成 5/9 批次）——目标域已重锚为「哲学 + 管理」专业英语阅读，核心痛点为「英汉不可一一对应导致的翻译损耗」。
 
+**壳层选型已完成实测复核**（2026-10-14）：LynxJS 裁决保留，判据换挂；[poc/](poc/README.md) 为可复现验证工程。
+
 **基础设计文档**：
 
 - [AGENTS.md](AGENTS.md) —— **工程规范（开工先读）**：默认执行模式为 AI-agent 蜂群，含起批六动作、四类不可委托裁决、纪律清单
 - [docs/kernel.md](docs/kernel.md) —— **最小理论内核**（十条机制 + 术语表，先读这个）
 - [docs/org-design.md](docs/org-design.md) —— 教练组织设计（english-coach-bureau 骨架 v0.1，2026-10-13）
 - [docs/app-design.md](docs/app-design.md) —— App 设计（跨平台运行时载体 **v0.3**，2026-10-14：双模运行——纯单机基线 + 可选同步 + 无缝切换；选型裁决——优先 LynxJS（Vue 版），Ubuntu 延后或取消，Flutter 降为回退路径）
-- [docs/tech-eval-lynx-20261014.md](docs/tech-eval-lynx-20261014.md) —— Lynx（Vue 版）选型评估（2026-10-14）：四端可行但 Linux 断角 + Vue×桌面双早期 + 宿主自建成本。**原判「不替代 Flutter 主选」已被 v0.3 goal-keeper 裁决推翻**，三项顾虑转为已接受风险，本文保留为风险登记基线
+- [docs/tech-eval-lynx-20261014.md](docs/tech-eval-lynx-20261014.md) —— Lynx（Vue 版）选型评估（2026-10-14）：四端可行但 Linux 断角 + Vue×桌面双早期 + 宿主自建成本。**原判「Flutter 主选」已被 v0.3 goal-keeper 裁决推翻**，三项顾虑转为已接受风险，本文保留为历史风险登记（风险高估部分已被下条实测修正）
+- [docs/tech-recheck-lynx-20261014.md](docs/tech-recheck-lynx-20261014.md) —— **Lynx 选型复核（实测级，Phase 1 开工前必读）**：补齐 tech-eval 的「未实测」缺口。结论=裁决保留但判据换挂——「快速预览」经实测成立（Web 预览重建 0.15s、JS/模板热更新、可被 agent 无头验证），且桌面风险被实测下调（CSS 97%、键盘事件完整、Lynxtron 0.0.28 迭代中）；但①该理由非瓶颈轴（难点在 coach_core 与 L4 原生集成，预览回路都验不到）②纯 CSS 改动不热更新需手动刷新。另纠正：`event.key` 限制仅限 iOS/Android 原生，桌面键盘优先无风险
+- [poc/](poc/README.md) —— **Lynx(Vue) 壳层 POC**：可复现工程，复刻本产品真实 UI 约束（三栏 / 衬线阅读 / 34em 行宽 / 会话流），三条回路随时可重新测量；[实测记录](poc/evidence/measurements.md)
 
 **需求侧文档**（RML 可视化需求分析，2026-10-14 起，目标域已重锚为「哲学 + 管理」专业英语阅读）：
 
@@ -30,17 +34,28 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 - [docs/requirements/09-system-interface-table.md](docs/requirements/09-system-interface-table.md) —— 系统接口表 v0.1（草稿）：6 张接口表逐字段定义，含判读官的 I-DISC 禁止传输清单
 - [docs/requirements/10-data-flow-diagram.md](docs/requirements/10-data-flow-diagram.md) —— 数据流图 v0.1（草稿）：1 张 L1（6 流程 / 9 数据存储区 / 9 外部实体）+ 2 张 L2 分解，逐条登记 50 条数据流的来源、终点与载体；与 BDD 分工明确（BDD 静态对象结构、本图动态流转视角），含三层可重算性分级与 I-DISC 的负空间表达
 - [docs/requirements/11-system-flow.md](docs/requirements/11-system-flow.md) —— 系统流程 v0.1（草稿）：系统内部自动处理步骤与异常补偿链，含 journal 派生重算与跨设备合账
-- [docs/requirements/14-roles-permissions-matrix.md](docs/requirements/14-roles-permissions-matrix.md) —— 角色权限矩阵 R&P v0.1（草稿）：六角色 × 账本写权限的完整落表；单写者约束保护 I-DISC 与派生链
-- [docs/requirements/15-requirements-mapping-matrix.md](docs/requirements/15-requirements-mapping-matrix.md) —— 需求映射矩阵 RMM v0.1（草稿）：84 条需求全部追溯到特性树 49 个 L2 与 BOM G0–G4，含四路需求来源
 - [docs/requirements/12-user-interface-flow.md](docs/requirements/12-user-interface-flow.md) —— 用户界面流程 v0.1（草稿）：13 个规范屏幕按死法 A8 分设备出 4 张子图（iOS 单列 2 / macOS 三栏 2），18 个屏幕框逐屏列进入边与离开边，验证无死端无孤岛；同步四态与判定级别降级标记的导航落位已收口
-- [docs/requirements/13-display-action-response.md](docs/requirements/13-display-action-response.md) —— 显示-动作-响应 v0.1（草稿）：12 个屏幕 33 张元素表（元素 ID 统一 ELMT_xxxx），每条行为按「触发什么 / 显示什么 / 下一步能去哪」三问校验；ELMT_0101/0102 为跨全部 18 个屏幕框的全局常驻元素
-- [docs/requirements/14-roles-permissions-matrix.md](docs/requirements/14-roles-permissions-matrix.md) —— 角色权限矩阵 v0.1（草稿）：六角色 × 56 项系统操作（由 21 个 BDD 对象按数据六种行动穷举派生）逐格给是/否不留空白；四条单写者约束落表，声明其保护的是 I-DISC 与派生链正确性而非防数据损坏
+- [docs/requirements/13-display-action-response.md](docs/requirements/13-display-action-response.md) —— 显示-动作-响应 v0.1（草稿）：13 个规范屏幕全部建表、33 张元素表（逐屏专属 31 + 跨屏全局 2，ELMT_0101/0102 常驻全部屏幕状态行），每条行为按「触发什么 / 显示什么 / 下一步能去哪」三问校验
+- [docs/requirements/14-roles-permissions-matrix.md](docs/requirements/14-roles-permissions-matrix.md) —— 角色权限矩阵 R&P v0.1（草稿）：六角色 × 56 项系统操作（由 21 个 BDD 对象按数据六种行动穷举派生）逐格给是/否不留空白；四条单写者约束落表，声明其保护的是 I-DISC 与派生链正确性而非防数据损坏
+- [docs/requirements/15-requirements-mapping-matrix.md](docs/requirements/15-requirements-mapping-matrix.md) —— 需求映射矩阵 RMM v0.1（草稿）：84 条需求全部追溯到特性树 49 个 L2 与 BOM G0–G4，含四路需求来源
 - [docs/requirements/16-process-flow.md](docs/requirements/16-process-flow.md) —— 处理流程 v0.1（草稿）：L1 端到端 8 步（7±2 内）、四条角色泳道（学习者/教练官/判读官/记忆官）、2 个决策点全部引用决策树；核心产出为判读官独立上下文（I-DISC）的交接契约与 B0 档 0 轮会话的位置
 - [docs/requirements/17-use-case.md](docs/requirements/17-use-case.md) —— 用例 v0.1（草稿，文字规格非用例图）：UC-01..UC-08 八条用例含主要/替代/异常四段；唤起协议六条口语指令逐条展开为可测规格，含 AC 覆盖矩阵（11 条验收标准各由哪个用例承载）
 
 **证据核验文档**（外部检索综述，用于校准设计假定与证据强度的匹配）：
 
 - [docs/evidence/evidence-review-v0.1.md](docs/evidence/evidence-review-v0.1.md) —— 外部证据核验 v0.1：四维度检索综述。⚠️ 含 **4 条会改变设计的发现**（词汇覆盖率须设为前置门 / 间隔收益依赖掌握度标准 / 最优间隔 ≈ 保持期 10–20% / ⚠️ **偶然习得在 L2+专业文本上证据基础薄弱**）与 2 条须降级的假设
+
+**蜂群治理产物**（本仓需求分析由多 agent 蜂群产出，判定过程本身也是产物）：
+
+| 文件 | 内容 |
+|---|---|
+| [docs/swarm/ORG-SPEC.md](docs/swarm/ORG-SPEC.md) | 蜂群组织规格 v1.0：拓扑、判定门、逃逸对策 |
+| [docs/swarm/RETRO-01.md](docs/swarm/RETRO-01.md) | 首轮复盘 **v0.2**：L2 独立判别器判定 **FAIL**（8 份产物 4 达标 / 3 不达标 / 1 无法判定）；据此**撤回 R1「越权写入由机器拦截」的声明**——实测证明该门禁抓不到真实越权形态 |
+| [docs/swarm/contracts/batches-06-to-09.json](docs/swarm/contracts/batches-06-to-09.json) | 批次契约（7 批）：目标 / 能力卡 / 输入 / **文件所有权** / 验收 / 返回契约 |
+| [docs/swarm/contracts/content-manifest.json](docs/swarm/contracts/content-manifest.json) | 21 份产物的 sha256 冻结清单（冻结后不再更新） |
+| [docs/swarm/contracts/applied-fixes.json](docs/swarm/contracts/applied-fixes.json) | 跨文档修正台账：每条修正须附**可机械核对的证据**与新指纹 |
+| [tools/verify_docs.py](tools/verify_docs.py) | L1 机器绿灯（13 类检查，含 OWN001 写入归属、MAN001 内容指纹、REF001 DD 引用有效性） |
+| [tools/selftest_verify_docs.py](tools/selftest_verify_docs.py) | **校验器自审**：33 项负向用例，证明每条检查在坏输入上真的会 FAIL |
 
 ## 独立交付
 

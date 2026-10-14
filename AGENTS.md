@@ -65,6 +65,8 @@ goal-keeper（人）
 4. **自己串行应用跨文档修正**：子 agent 只能写自己名下的文件，对其他文档的意见一律进返回清单，由 orchestrator 串行执行；
 5. **过判定门**：
    - L1 机器绿灯 `python3 tools/verify_docs.py`（FAIL 存在则本批不得交付）；
+   - L1 自身先过自审 `python3 tools/selftest_verify_docs.py`——**改过校验器就必须跑**，否则你不知道它是拦住了问题还是放行了问题（首轮两次自抓：引号归一化 bug、负向用例因路径错误而假通过）；
+   - **编排者收口时须申报内容变更**：凡在 `content-manifest.json` 冻结之后发生的任何内容改动，都要在 `applied-fixes.json` 追加一条带 `evidence` 与 `new_sha256` 的记录，否则 `MAN001` 判 FAIL。这条针对的是首轮的真实失败形态——agent 改了别人的文件而 `batch:` 字段纹丝不动，`OWN001` 全绿也拦不住；
    - L2 独立判别器（fresh 上下文、异角色、不参与生成，按能力卡的「完成标准」逐条打勾——**不看篇幅看标准**）；
    - L3 逃逸监控：看逃逸距离趋势（产生批次 → 被抓批次），连续变长则判定门降级为人工抽检；
 6. **批次级复盘**：产出契约修订，**只改判定标准，不回溯已完成的产物**；历史修正走显式挂账。
@@ -107,6 +109,9 @@ goal-keeper（人）
 # L1 机器绿灯（交付前必跑；退出码 0 = 全绿，1 = 有 FAIL）
 python3 tools/verify_docs.py
 python3 tools/verify_docs.py --strict   # 警告也视为失败
+
+# 校验器自审（改过 verify_docs.py 后必跑；验证门禁自己在坏输入上会 FAIL）
+python3 tools/selftest_verify_docs.py
 ```
 
 新增 `docs/requirements/NN-*.md` 后，**必须同时在 README.md 的需求侧索引登记**，否则 L1 `[RM001]` 判 FAIL——这是当前最容易踩的一条。
@@ -120,7 +125,10 @@ python3 tools/verify_docs.py --strict   # 警告也视为失败
 | `docs/kernel.md` | 最小理论内核（十条机制 + 术语表） |
 | `docs/requirements/` | RML 22 模型需求产物（**批次产出落盘处**） |
 | `docs/swarm/ORG-SPEC.md` | 蜂群组织规格 v1.0 |
-| `docs/swarm/contracts/` | 批次契约（schema `swarm-batch-contract/v1`） |
+| `docs/swarm/RETRO-01.md` | 首轮复盘 v0.2（含 L2 首轮判定 FAIL 与 R1 撤回记录） |
+| `docs/swarm/contracts/` | 批次契约（schema `swarm-batch-contract/v1`）+ `content-manifest.json`（冻结指纹）+ `applied-fixes.json`（修正台账） |
+| `tools/verify_docs.py` | L1 校验器（13 类检查） |
+| `tools/selftest_verify_docs.py` | 校验器自审（33 项负向用例） |
 | `docs/evidence/` | 外部证据核验 |
 | `tools/verify_docs.py` | L1 校验器 |
 

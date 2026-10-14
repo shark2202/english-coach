@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/data-f
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（关键对象已定，删除类流程缺口挂待裁决）
+batch: "batch-09-dataflow-systemflow"
 ---
 
 # 数据流图（DFD）v0.1

@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/ecosys
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（批次 5 上半；接口逐字段见 09-system-interface-table.md）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 生态图 v0.1

@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/decisi
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（无死角校验通过；部分判断的触发条件待批次 7 用例细化）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 决策树 v0.1

@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/use-ca
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（八条用例待 goal-keeper 确认；AC11 的同步冲突部分已判为批次 9 范围）
+batch: "batch-07-processflow-usecase"
 ---
 
 # 用例 v0.1（文字规格，非用例图）

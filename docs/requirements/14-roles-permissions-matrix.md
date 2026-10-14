@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/roles-
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（列定义已齐；「无」格与全否格待 goal-keeper 逐条确认；独立标注官角色归属待裁决）
+batch: "batch-06-rp-rmm"
 ---
 
 # 角色权限矩阵（R&P）v0.1

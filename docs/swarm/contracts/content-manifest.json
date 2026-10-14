@@ -1,0 +1,96 @@
+{
+  "schema": "swarm-content-manifest/v1",
+  "frozen_at": "2026-10-14T12:10:00+08:00",
+  "frozen_reason": "L2 独立判别器验收通过的瞬间状态——此后的任何内容变动都必须可归因",
+  "rule": "清单在冻结后不再更新。文件内容变动只有两种合法形态：① sha256 等于本清单记录值（未动）② sha256 等于 applied-fixes.json 中某条声明的 new_sha256（已申报的修正）。其余一律判 MAN001 FAIL——这正是 RETRO-01 首轮 4 起越权的真实形态：agent 改了别人的文件内容，batch: 字段纹丝不动，OWN001/OWN002 全绿。",
+  "honest_limits": [
+    "本检查判的是「变动是否申报」，不是「谁改的」。申报权在编排者，故仍需编排者不滥用申报通道。",
+    "它不阻止首次越权发生，只让越权在收口前暴露。要进一步压缩需 git 侧归因或子 agent 沙箱写目录，属后续批次议题。"
+  ],
+  "files": [
+    {
+      "path": "docs/requirements/00-business-objectives.md",
+      "sha256": "62d1b51faf7ffd287664b4b655b8806a5212e151fe0123eb17a9b76292127d1b"
+    },
+    {
+      "path": "docs/requirements/01-feature-tree.md",
+      "sha256": "b1fce09e3a5548db2715a3380037d31588c3b3248eb6a1f49ee88e39e6b816d9"
+    },
+    {
+      "path": "docs/requirements/02-business-data-diagram.md",
+      "sha256": "5abaa7fecfaccb7930ca9d519ef56b5991ea71fb28f2389088c6f60efc325ff3"
+    },
+    {
+      "path": "docs/requirements/03-data-dictionary.md",
+      "sha256": "5aa2be68354856a93c21a7b2bb3acbcec37c5b0f5ab54fd469413ed790124365"
+    },
+    {
+      "path": "docs/requirements/04-state-table.md",
+      "sha256": "17f1c25478b489a65609992884df1297d33d17f2f5d2b99e87d6cd832524cddc"
+    },
+    {
+      "path": "docs/requirements/05-state-diagram.md",
+      "sha256": "9b5578890b14fb5100636d8f2aba7f0288131e90ac53452013cc6a4f916b2857"
+    },
+    {
+      "path": "docs/requirements/06-decision-table.md",
+      "sha256": "4541d9e6b7528e9f7b6412fd94be65894a020b64e51f4206d9ffb787c2da66e6"
+    },
+    {
+      "path": "docs/requirements/07-decision-tree.md",
+      "sha256": "4b69e9f6063254b64d152a05d2dccf9ce71a9fe06f22577620c430f3e3a532f9"
+    },
+    {
+      "path": "docs/requirements/08-ecosystem-map.md",
+      "sha256": "ab92f92444f6d9e1c4693a66a99af9fa59f48b46372d528f021d6d6598b1b85a"
+    },
+    {
+      "path": "docs/requirements/09-system-interface-table.md",
+      "sha256": "01ad2a95c1236c999725f610370239e88ec49f82f061e63dfa5ffcd2f31d7b4f"
+    },
+    {
+      "path": "docs/requirements/10-data-flow-diagram.md",
+      "sha256": "72712b12bced1edbf67d63c4f99268e45d36bcf16a4f4e7658d50d2b92f19404"
+    },
+    {
+      "path": "docs/requirements/11-system-flow.md",
+      "sha256": "e13c285d6284f441449f88bef3ac97f2da9b2d49d9632457a5716a7aefb5738e"
+    },
+    {
+      "path": "docs/requirements/12-user-interface-flow.md",
+      "sha256": "ab69a0ccc4e86353a302cbaf2ebdbc2ed4a5699c5a24e7127c38ff2a5f06564e"
+    },
+    {
+      "path": "docs/requirements/13-display-action-response.md",
+      "sha256": "a0c78adcc9d67365e00d64a750082685e0f0190e9cff06da110cb5a9945c4364"
+    },
+    {
+      "path": "docs/requirements/14-roles-permissions-matrix.md",
+      "sha256": "958a6acb65220da128f98c1220f4fa4ede59a26706cb98d2c34f88c4e9c6b2c1"
+    },
+    {
+      "path": "docs/requirements/15-requirements-mapping-matrix.md",
+      "sha256": "f5648eb3fe4bfd4212b183603d42ce6cc79760339111ce90c813ffb51e55da0e"
+    },
+    {
+      "path": "docs/requirements/16-process-flow.md",
+      "sha256": "126eb16d99c01dde762fa295d535b28a82d67a80d9a413f3342eaa133f7bd39e"
+    },
+    {
+      "path": "docs/requirements/17-use-case.md",
+      "sha256": "8d6ccaa7eed2438b05d5ea33721a54fc98d3e99f72ca6502feb56079b41801e0"
+    },
+    {
+      "path": "docs/app-design.md",
+      "sha256": "902a64e14221c1774b6bcdda4c6a4b00b33ab791769bf26bb5ca1183d6fcb37e"
+    },
+    {
+      "path": "docs/org-design.md",
+      "sha256": "2fc0b09349268002ac80dd4b95bdab42263084c6e39c1e5030b99ac0fde74c62"
+    },
+    {
+      "path": "docs/kernel.md",
+      "sha256": "e22878a3854ca4177ed84702a0e4c8f38312305397f99b0b7673efe6ed136ed1"
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "schema": "swarm-applied-fixes/v1",
+  "purpose": "R4——跨文档修正的闭环验收。域 agent 只能写自己 owns 的文件，其余修正以 cross_doc_fixes 交回，由 orchestrator 串行应用。应用后必须在本台账登记一条带 evidence 的记录，校验器逐条核对 evidence 是否真实成立。「声称已修」不等于「已修」，本台账是唯一凭据。",
+  "evidence_semantics": {
+    "contains": "目标文件必须包含该字符串，否则判 FAIL（修正未真正落地）",
+    "not_contains": "目标文件必须不含该字符串，否则判 FAIL（修正未真正落地）"
+  },
+  "fixes": [
+    {
+      "id": "C1",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-09-dataflow-systemflow",
+      "target_file": "docs/requirements/03-data-dictionary.md",
+      "claim": "chunk-ledger 此前无任何字段定义，合账重算在字段层无处落地；补 DD801–DD803 三字段",
+      "evidence": {
+        "type": "contains",
+        "string": "DD801"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "C2",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-09-dataflow-systemflow",
+      "target_file": "docs/requirements/08-ecosystem-map.md",
+      "claim": "两处把接口表写成 08-system-interface-table.md，实为 09-system-interface-table.md",
+      "evidence": {
+        "type": "not_contains",
+        "string": "08-system-interface-table.md"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "C3",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-09-dataflow-systemflow",
+      "target_file": "docs/app-design.md",
+      "claim": "AC11「合账零行丢失」须显式加入并发写同一语块行调度栏场景，否则测不出 LWW 与重算的差异",
+      "evidence": {
+        "type": "contains",
+        "string": "同一语块行的调度栏"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "U1",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-08-ui-dar",
+      "target_file": "docs/app-design.md",
+      "claim": "A10 对策仍写「同步状态显式三态」，与决策树已定的四态（含同步失败）不符",
+      "evidence": {
+        "type": "contains",
+        "string": "同步状态显式**四态**"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "O1",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/org-design.md",
+      "claim": "chunk-ledger 模板须拆事实栏/派生栏，否则派生栏混入事实栏会导致 LWW 静默丢弃需复核信号",
+      "evidence": {
+        "type": "contains",
+        "string": "事实栏/派生栏分离"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "O2",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/org-design.md",
+      "claim": "角色表增「独立标注官」，归属挂待裁决，不可挂判读官",
+      "evidence": {
+        "type": "contains",
+        "string": "独立标注官"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "F1",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/01-feature-tree.md",
+      "claim": "E5 交叉校验源补第四个（需求映射矩阵反查哪些特性需求过少），并登记 F4 回译对照视图零需求承接",
+      "evidence": {
+        "type": "contains",
+        "string": "需求映射矩阵（哪些特性需求过少）"
+      },
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "E3",
+      "kind": "retroactive_authorization",
+      "source_batch": "unknown(批次 7/8/9 之一)",
+      "target_file": "docs/swarm/ORG-SPEC.md",
+      "claim": "越权写入：修正编排者写错的 config/swarm.json 路径表述，内容正确，事后追认",
+      "evidence": {
+        "type": "contains",
+        "string": "docs/swarm/contracts/"
+      },
+      "applied_by": "orchestrator",
+      "governance_note": "见 RETRO-01 §1.1 E3。未经授权的写入即使内容正确也必须登记，否则等于默认放行"
+    },
+    {
+      "id": "E4",
+      "kind": "retroactive_authorization",
+      "source_batch": "unknown",
+      "target_file": "AGENTS.md",
+      "claim": "越权创建：新建 133 行工程规范，内容扎实，事后追认",
+      "evidence": {
+        "type": "contains",
+        "string": "默认执行模式"
+      },
+      "applied_by": "orchestrator",
+      "governance_note": "见 RETRO-01 §1.1 E4。⚠️ 该文件把「默认蜂群执行」写为最高优先级约定，已列入待 goal-keeper 过目事项"
+    },
+    {
+      "id": "L2-01",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/02-business-data-diagram.md",
+      "claim": "L2 指控：BDD 关系 4.4 写「游标的三态」，未跟随 DD703/状态表 §八/决策树 §四 的四态回写",
+      "evidence": {
+        "type": "contains",
+        "string": "游标的四态（单机/同步中/已同步/**同步失败**）"
+      },
+      "applied_by": "orchestrator",
+      "verdict_ref": "VERDICT FAIL 第 3 项",
+      "new_sha256": "12454c52b460eceb8d90cb52eb6ae0e714df338d1e395d8ac6be130d4e626e65"
+    },
+    {
+      "id": "L2-02",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/03-data-dictionary.md",
+      "claim": "L2 指控 + 编排者复核追加：§三 行为需求表写三态；DD703 字段名仍叫「三态显式化」而取值已是四个（判别器未指出字段名这一处）",
+      "evidence": {
+        "type": "contains",
+        "string": "DD703/704 四态与时刻须显式呈现"
+      },
+      "applied_by": "orchestrator",
+      "verdict_ref": "VERDICT FAIL 第 3 项 + 编排者追加发现",
+      "new_sha256": "0298111a612faf0681689e0b942dc62c8b6767b38d11a8ccfd85131769c67430"
+    },
+    {
+      "id": "L2-03",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/11-system-flow.md",
+      "claim": "L2 指控：§十 自检行写「32 条补偿条目」，而 §9.1 实测 17 条 + §9.2 实测 14 条 = 31，与 frontmatter 及 §九标题一致",
+      "evidence": {
+        "type": "contains",
+        "string": "§九 以 31 条补偿条目覆盖"
+      },
+      "applied_by": "orchestrator",
+      "verdict_ref": "VERDICT FAIL 第 7 项",
+      "new_sha256": "134571e0a36728620cf57f5c4d278e752610503d74edd3b8d004d922f3831852"
+    },
+    {
+      "id": "L2-04",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/13-display-action-response.md",
+      "claim": "L2 指控屏幕数自相矛盾（frontmatter 12 vs §十八 13）。编排者复核后定位到根因并扩大修正：§零 逐屏 13 行全部标 ✅，合计行「12/13」是旧稿残留；逐屏元素数相加为 31 而非 33，差额来自 2 张跨屏全局元素（ELMT_0101/0102），文档却自称「唯一一张跨屏元素表」。另修 DD411 悬空引用（字典最大结构标注字段为 DD410）",
+      "evidence": {
+        "type": "not_contains",
+        "string": "DD101–DD411"
+      },
+      "applied_by": "orchestrator",
+      "verdict_ref": "VERDICT FAIL 第 8、12 项 + 编排者追加发现",
+      "new_sha256": "860c1229c17d3a2f4f0b0b574ff2b0e0d914be3a180752a294ac79d5354de5e1"
+    },
+    {
+      "id": "P1",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-07-processflow-usecase",
+      "target_file": "docs/requirements/04-state-table.md",
+      "claim": "状态表 §零 把会话排除在外的理由原写「转变事件属批次 7 流程模型范畴」，等于把定义类问题甩出本表；批次 7 已在 16-process-flow.md §1.2 还清转变表并给出两条「确认无」，此处结案并指向该节",
+      "evidence": {
+        "type": "contains",
+        "string": "✅ **已还清**——转变表见 `16-process-flow.md` §1.2"
+      },
+      "applied_by": "orchestrator",
+      "governance_note": "落盘早于 content-manifest 冻结，故无 new_sha256。⚠️ 本条与 P2 均属「已落地但从未申报」——补登时才发现台账不完整，正是 FIX001/MAN001 要暴露的那类记账缺口"
+    },
+    {
+      "id": "P2",
+      "kind": "cross_doc_fix",
+      "source_batch": "batch-07-processflow-usecase",
+      "target_file": "docs/requirements/03-data-dictionary.md",
+      "claim": "DD104 悬空会话原挂「待批次 4 决策树裁决」，而决策树只确认场景存在未裁决；批次 7 在 17-use-case.md §3.2 给出落盘形态（B0 落一行 DD107=0 的 journal 行）并连带修复 DD108/DD109 必填冲突，代价为 B0 不产学习效果度量",
+      "evidence": {
+        "type": "contains",
+        "string": "✅ **v0.3 已结**（批次 7 裁决）"
+      },
+      "applied_by": "orchestrator",
+      "governance_note": "同上；该裁决的代价（B0 不度量）属产品取舍，已列入待 goal-keeper 过目事项"
+    },
+    {
+      "id": "E5-1",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/01-feature-tree.md",
+      "claim": "§六 E5 交叉校验台账把处理流程/系统流程/用例三项标为「未执行」，未说明批次 7/9 已产出、回填条件已成熟。补注以防「批次已完成」被误读为「交叉校验已执行」",
+      "evidence": {
+        "type": "contains",
+        "string": "回填条件已成熟但尚未执行"
+      },
+      "new_sha256": "77a7acd42cdbbf6088b4b3111c1e709f06c0006f120cec6ce1a2f1e8f885c10f",
+      "applied_by": "orchestrator",
+      "superseded_by": "E5-2",
+      "governance_note": "本条曾把 E5 台账标为「⏳ 回填条件已成熟但尚未执行」；E5-2 在批次 11 完成后把该行改为 ✅ 已执行并填入实质发现，本条的证据串因此消失。保留原记录而不删除——台账的用途是记录发生过什么，不是保持全绿"
+    },
+    {
+      "id": "F-12",
+      "kind": "l2_correction",
+      "source_batch": "batch-10-fix-ui-flow",
+      "target_file": "docs/requirements/12-user-interface-flow.md",
+      "claim": "L2 判定不达标：§7.1 逐屏进出边表 6 行与 §三–§六 的 43 条边台账矛盾（含伪造标签 D1'、I2 漏记 B3/B9/B11、I3/I4/I5 多列非本屏边）；子图框数声明 5/5/4/4 与图内实测 6/7/4/7 不符；均边数 2.4 系用 43 条总边（含 4 条非屏幕源边）除 18 框得出，实为 39/18=2.17",
+      "evidence": {
+        "type": "not_contains",
+        "string": "D1'（反向由 D9 覆盖）"
+      },
+      "new_sha256": "04d07bd31240686ca02451d3a4a81e8b211d6ab51cb1f2170f00c1e1aad78590",
+      "applied_by": "orchestrator",
+      "verification": "编排者用独立脚本解析文件内台账重算并逐格比对：43 条边 ↔ §7.1 全 18 行，零不一致，无伪造标签。与判别器、域 agent 三路独立推导结论相同",
+      "residual": "子图 C 为 4 框，低于 7±2 带下界；卡内「≤7±2」与「控制在 7±2」两种读法结论不同，处置未裁定，已登记为该文件 §十 挂账 6（建模决策，不属事实错误）"
+    },
+    {
+      "id": "F-15",
+      "kind": "l2_correction",
+      "source_batch": "batch-11-fix-rmm",
+      "target_file": "docs/requirements/15-requirements-mapping-matrix.md",
+      "claim": "L2 判定「无法判定」：流程步骤与用例两列全为 ⏳7 占位，卡内完成标准「每个需求映射到流程步骤」客观不可达。批次 7/9 产物到位后回填为真实映射",
+      "evidence": {
+        "type": "contains",
+        "string": "47 条两者皆无并逐条登记理由"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立解析矩阵重算：84 行 × 9 列、无空单元格、有流程步骤 30、有用例 36、两者皆无 47；悬空 DD 引用 0。与域 agent 报告一致",
+      "orchestrator_applied": "批次 11 契约只授权改 batch: 字段，故 frontmatter 的 title/description/status 三处与正文不一致——由编排者按该文 §八·F1 逐字应用建议值收口",
+      "new_sha256": "58b3f6a318f7fdf80c64b973e9b7b233bd075a06f80f1b06cc0591a2f48e9cf0"
+    },
+    {
+      "id": "E5-2",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/requirements/01-feature-tree.md",
+      "claim": "§六 E5 交叉校验台账中「处理流程/系统流程」与「用例」两源仍标 ⏳ 未执行，而批次 11 已用产出的 16/17 完成反查并产生实质发现（流程覆盖缺口、7 条有用例无流程、47 条两者皆无）",
+      "evidence": {
+        "type": "contains",
+        "string": "语料供给链与结构标注链无任何流程模型"
+      },
+      "applied_by": "orchestrator",
+      "verification": "先核实 15 §四 与 §5.4 确载该执行过程与结论，才更新台账；未据域 agent 自述直接标 ✅",
+      "new_sha256": "9f52a02b15f967fc0bc13fb65d26d1859d668c7a9850c8ce1519ef90775ebd69"
+    }
+  ]
+}

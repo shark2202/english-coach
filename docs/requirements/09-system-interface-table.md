@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/system
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 草稿（字段集与数据字典已对齐；量级为估��）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 系统接口表 v0.1

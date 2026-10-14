@@ -7,6 +7,7 @@ model_source: "visual-models-requirements-skill / references/capabilities/busine
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 已冻结（v0.3 追加「能力演化适应」需求，2026-10-14）
+batch: "batch-01-to-05-orchestrator"
 ---
 
 # 业务目标模型（BOM）v0.3（已冻结）

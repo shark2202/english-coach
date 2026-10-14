@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 import unicodedata
@@ -35,6 +36,14 @@ def ok(msg: str) -> None:
     OK.append(msg)
 
 
+def unquote(s: str) -> str:
+    """剥掉成对的包裹引号。frontmatter 值既可能写 `batch: xxx` 也可能写 `batch: "xxx"`，
+    两种写法必须等价——否则 OWN001 会把同一个值判成越权写入（已实际发生过）。"""
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+        return s[1:-1]
+    return s
+
+
 def parse_frontmatter(text: str) -> dict[str, str]:
     if not text.startswith("---"):
         return {}
@@ -46,7 +55,7 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     for line in block.splitlines():
         m = re.match(r"^([A-Za-z_-]+):\s*(.*)$", line)
         if m:
-            out[m.group(1)] = m.group(2).strip()
+            out[m.group(1)] = unquote(m.group(2).strip())
     return out
 
 
@@ -223,14 +232,210 @@ def check_readme_index() -> None:
             fail("README.md", "RM001", f"未在 README 索引中登记：{f.name}")
 
 
+# ── 检查 9：写入范围（OWN001，契约修订 R1） ──────────────────────────
+# 动机：蜂群首轮 4 起越权写入，内容均正确但门禁零拦截。本检查把
+# 「写入的文件是否在契约 owns 清单内」从 orchestrator 事后复核变成机器强制。
+
+CONTRACT = ROOT / "docs" / "swarm" / "contracts" / "batches-06-to-09.json"
+
+
+def load_ownership() -> dict[str, str]:
+    """返回 {文件名: 批次 id}。契约缺失时返回空字典并告警，不误判。"""
+    if not CONTRACT.exists():
+        return {}
+    try:
+        c = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        warn(CONTRACT.name, "OWN000", f"契约 JSON 非法，OWN 检查跳过：{e}")
+        return {}
+    own: dict[str, str] = {}
+    for b in c.get("batches", []):
+        for f in b.get("owns", []):
+            own[Path(f).name] = b.get("id", "?")
+    return own
+
+
+def check_ownership(path: Path, own: dict[str, str]) -> None:
+    if not own:
+        return
+    fm = parse_frontmatter(path.read_text(encoding="utf-8"))
+    declared = fm.get("batch")
+    actual = own.get(path.name)
+    if actual is None:
+        fail(path.name, "OWN002", "契约中无任何批次 owns 此文件——未授权创建")
+        return
+    if not declared:
+        fail(path.name, "OWN001", f"frontmatter 未声明 batch（契约归属 {actual}）")
+    elif declared != actual:
+        fail(path.name, "OWN001",
+             f"batch 声明为 {declared}，但契约归属为 {actual}——越权写入")
+
+
+def check_contract_covers_all(own: dict[str, str]) -> None:
+    """反向：docs/requirements 下每个文件都必须在契约中被 owns。"""
+    if not own:
+        return
+    for p in sorted(REQ_DIR.glob("*.md")):
+        if p.name not in own:
+            fail(p.name, "OWN002", "契约 owns 清单未覆盖此文件")
+
+
+# ── 检查 10：跨文档修正闭环验收（FIX001，契约修订 R4） ────────────────
+# 动机：域 agent 只能写自己 owns 的文件，其余修正以 cross_doc_fixes 交回，
+# 由 orchestrator 串行应用。本轮那些修正是手工 grep 应用的，没有机器确认环节——
+# 「我改了」与「真的改了」之间没有证据链。本检查把台账里的 evidence 逐条核对。
+
+FIX_LEDGER = ROOT / "docs" / "swarm" / "contracts" / "applied-fixes.json"
+
+
+def check_applied_fixes() -> None:
+    if not FIX_LEDGER.exists():
+        warn(FIX_LEDGER.name, "FIX000", "台账不存在，跨文档修正闭环无法验收")
+        return
+    try:
+        data = json.loads(FIX_LEDGER.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(FIX_LEDGER.name, "FIX002", f"台账 JSON 非法：{e}")
+        return
+
+    fixes = data.get("fixes", [])
+    if not fixes:
+        warn(FIX_LEDGER.name, "FIX000", "台账无条目")
+        return
+
+    verified = 0
+    superseded = 0
+    for fx in fixes:
+        fid = fx.get("id", "?")
+        # 被后续修正取代的条目保留在台账里（历史不可删），但不参与证据核对——
+        # 否则一次正常的再修正就会被判成「此前的修正没落地」
+        if fx.get("superseded_by"):
+            superseded += 1
+            continue
+        target = ROOT / fx.get("target_file", "")
+        ev = fx.get("evidence", {})
+        kind, needle = ev.get("type", ""), ev.get("string", "")
+        if kind not in ("contains", "not_contains") or not needle:
+            fail(fid, "FIX002", f"证据定义无效：{ev}")
+            continue
+        if not target.exists():
+            fail(fid, "FIX001", f"目标文件不存在：{fx.get('target_file')}")
+            continue
+        present = needle in target.read_text(encoding="utf-8")
+        if kind == "contains" and not present:
+            fail(fid, "FIX001",
+                 f"声称已修但未落地：{fx.get('target_file')} 不含「{needle[:40]}」")
+        elif kind == "not_contains" and present:
+            fail(fid, "FIX001",
+                 f"声称已修但未落地：{fx.get('target_file')} 仍含「{needle[:40]}」")
+        else:
+            verified += 1
+    note = f"，{superseded} 条已被后续修正取代（历史保留，不参与核对）" if superseded else ""
+    ok(f"{FIX_LEDGER.name}: {verified}/{len(fixes) - superseded} 条修正证据成立{note}")
+
+
+# ── 检查 11：内容指纹（MAN001） ────────────────────────────────────────
+# 动机：L2 独立判别器实测证明 OWN001/OWN002 抓不到 RETRO-01 的真实越权形态——
+# agent 改别人的文件内容而 batch: 字段纹丝不动，OWN001/OWN002 全绿。
+# 本检查把「内容变了但没人申报」变成 FAIL。清单冻结后不再更新，
+# 合法变动只有两种：未动，或在 applied-fixes.json 里申报了新的 sha256。
+
+import hashlib
+
+MANIFEST = ROOT / "docs" / "swarm" / "contracts" / "content-manifest.json"
+
+
+def sha256_of(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def declared_hashes() -> dict[str, set[str]]:
+    """从 applied-fixes 台账收集各文件的合法新指纹。"""
+    out: dict[str, set[str]] = {}
+    if not FIX_LEDGER.exists():
+        return out
+    try:
+        data = json.loads(FIX_LEDGER.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return out
+    for fx in data.get("fixes", []):
+        h = fx.get("new_sha256")
+        if h and fx.get("target_file"):
+            out.setdefault(fx["target_file"], set()).add(h)
+    return out
+
+
+def check_content_manifest() -> None:
+    if not MANIFEST.exists():
+        warn(MANIFEST.name, "MAN000", "内容指纹清单不存在，内容级越权无法拦截")
+        return
+    try:
+        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(MANIFEST.name, "MAN002", f"清单 JSON 非法：{e}")
+        return
+
+    legal = declared_hashes()
+    entries = data.get("files", [])
+    clean = 0
+    for e in entries:
+        rel, frozen = e.get("path", ""), e.get("sha256", "")
+        p = ROOT / rel
+        if not p.exists():
+            fail(rel, "MAN001", f"清单登记的文件不存在：{rel}")
+            continue
+        cur = sha256_of(p)
+        if cur == frozen or cur in legal.get(rel, set()):
+            clean += 1
+        else:
+            fail(rel, "MAN001",
+                 "内容已变更但未在 applied-fixes 台账申报——内容级越权或未登记的编辑")
+    ok(f"{MANIFEST.name}: {clean}/{len(entries)} 份文件内容可归因")
+
+
+# ── 检查 12：DD 引用有效性（REF001） ──────────────────────────────────
+# 动机：L2 实测发现 13-display-action-response.md 引用了 DD411，
+# 而数据字典最大结构标注字段是 DD410——悬空引用在本项目是真实失败模式，
+# 不是理论风险。人工比对 84 条需求里散落的 DD 引用不现实，这里做成机器判定。
+# 只做「精确可判定」的部分：编号是否存在。基数、状态名等语义一致性留给 L2。
+
+DD_DICT = REQ_DIR / "03-data-dictionary.md"
+
+
+def defined_dd_ids() -> set[str]:
+    if not DD_DICT.exists():
+        return set()
+    return set(re.findall(r"^\|\s*(DD\d{3})\s*\|", DD_DICT.read_text(encoding="utf-8"), re.M))
+
+
+def check_dd_references(dd_defs: set[str]) -> None:
+    if not dd_defs:
+        return
+    dangling_total = 0
+    for p in sorted(REQ_DIR.glob("*.md")):
+        dangling: set[str] = set()
+        for line in p.read_text(encoding="utf-8").splitlines():
+            # 显式声明「待定义/预留」的编号不算悬空——那是尚未兑现的承诺，不是错引
+            if re.search(r"待定义|预留|TBD|待补", line):
+                continue
+            dangling |= set(re.findall(r"DD\d{3}", line)) - dd_defs
+        if dangling:
+            dangling_total += len(dangling)
+            fail(p.name, "REF001",
+                 f"引用了数据字典中不存在的字段编号：{'、'.join(sorted(dangling))}")
+    if not dangling_total:
+        ok(f"全部需求文档的 DD 引用均在数据字典中有定义（{len(dd_defs)} 个编号）")
+
+
 # ── 主流程 ────────────────────────────────────────────────────────────
 def main() -> int:
     if not REQ_DIR.exists():
         print(f"找不到 {REQ_DIR}")
         return 1
 
+    own = load_ownership()
     docs = sorted(REQ_DIR.glob("*.md"))
-    print(f"校验 {len(docs)} 份需求文档 + README\n" + "=" * 62)
+    print(f"校验 {len(docs)} 份需求文档 + README" + (f" + {len(own)} 份契约归属" if own else "") + "\n" + "=" * 62)
 
     for f in docs:
         check_frontmatter(f)
@@ -240,8 +445,13 @@ def main() -> int:
         check_empty_cells(f)
         check_state_table(f)
         check_draft_honesty(f)
+        check_ownership(f, own)
 
     check_readme_index()
+    check_contract_covers_all(own)
+    check_applied_fixes()
+    check_content_manifest()
+    check_dd_references(defined_dd_ids())
 
     print(f"PASS {len(OK)}")
     for m in OK:

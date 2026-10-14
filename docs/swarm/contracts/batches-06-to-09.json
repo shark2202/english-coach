@@ -20,14 +20,62 @@
     },
     "concurrency_limit": 4,
     "recursion_depth_max": 2,
-    "file_ownership": "硬隔离：域 agent 只能写契约第 4 节列出的文件；跨文档修正走返回清单，由 orchestrator 串行应用"
+    "file_ownership": "硬隔离：域 agent 只能写契约第 4 节列出的文件；跨文档修正走返回清单，由 orchestrator 串行应用",
+    "ownership_policy": {
+      "rule_1": "只可写 / 建 owns 清单内的文件，逐字对应，不接受目录通配或前缀推断",
+      "rule_2": "禁止创建 owns 清单外的任何新文件——包括 README、AGENTS.md、规范类入口文件（契约修订 R2，首轮 E4 即钻此空子）",
+      "rule_3": "认为 orchestrator 写错了、或认为缺少某个文件，仍然只写进 cross_doc_fixes 与 open_questions，由 orchestrator 决定；「明显正确」不构成越权豁免",
+      "rule_4": "README.md 为 orchestrator 独占写入权，域 agent 一律不得触及（契约修订 R3，首轮 E1/E2）",
+      "rule_5": "越权写入的机械判定：产物 frontmatter 必须声明 batch，且与本文件 owns 清单归属一致（校验器 OWN001/OWN002）",
+      "rule_6": "任何越权写入即便内容正确，也必须在 applied-fixes.json 以 retroactive_authorization 追认——否则视同默认放行"
+    }
   },
   "memory_partitions": {
-    "core": { "budget_tokens": 4000, "eviction": "none", "content": "目标 + 不可变约束" },
-    "local": { "budget_tokens": 8000, "eviction": "batch_end", "content": "本批契约 + 前序批次结论摘要（带路径，不带全文）" },
-    "per_child_queue": { "budget_tokens": 2000, "eviction": "oldest_first", "content": "域 agent 待处理队列" }
+    "core": {
+      "budget_tokens": 4000,
+      "eviction": "none",
+      "content": "目标 + 不可变约束"
+    },
+    "local": {
+      "budget_tokens": 8000,
+      "eviction": "batch_end",
+      "content": "本批契约 + 前序批次结论摘要（带路径，不带全文）"
+    },
+    "per_child_queue": {
+      "budget_tokens": 2000,
+      "eviction": "oldest_first",
+      "content": "域 agent 待处理队列"
+    }
   },
   "batches": [
+    {
+      "id": "batch-01-to-05-orchestrator",
+      "agent": "swarm-orchestrator",
+      "goal": "需求分析前 5 批（BOM / 特性树 / BDD+数据字典 / 状态表+状态图 / 决策表+决策树 / 生态图+接口表），由编排者串行执行",
+      "cards": [],
+      "inputs": [
+        "docs/org-design.md",
+        "docs/app-design.md",
+        "docs/kernel.md"
+      ],
+      "owns": [
+        "docs/requirements/00-business-objectives.md",
+        "docs/requirements/01-feature-tree.md",
+        "docs/requirements/02-business-data-diagram.md",
+        "docs/requirements/03-data-dictionary.md",
+        "docs/requirements/04-state-table.md",
+        "docs/requirements/05-state-diagram.md",
+        "docs/requirements/06-decision-table.md",
+        "docs/requirements/07-decision-tree.md",
+        "docs/requirements/08-ecosystem-map.md",
+        "docs/requirements/09-system-interface-table.md",
+        "docs/swarm/ORG-SPEC.md",
+        "docs/swarm/RETRO-01.md",
+        "tools/verify_docs.py",
+        "README.md"
+      ],
+      "note": "编排者独占：README 为共享写入热点，域 agent 不得触及（契约修订 R3）"
+    },
     {
       "id": "batch-09-dataflow-systemflow",
       "agent": "domain-agent-a",
@@ -44,7 +92,10 @@
         "docs/requirements/08-ecosystem-map.md",
         "docs/requirements/09-system-interface-table.md"
       ],
-      "owns": ["docs/requirements/10-data-flow-diagram.md", "docs/requirements/11-system-flow.md"],
+      "owns": [
+        "docs/requirements/10-data-flow-diagram.md",
+        "docs/requirements/11-system-flow.md"
+      ],
       "must_resolve": [
         "TTS 失效时 B0 档的降级链（生态图 §4.2 遗留）",
         "chunk-ledger 合账后是否一律重算调度，不得静默丢一方（接口表 §八.1 遗留）",
@@ -71,7 +122,10 @@
         "docs/requirements/07-decision-tree.md",
         "docs/requirements/08-ecosystem-map.md"
       ],
-      "owns": ["docs/requirements/12-user-interface-flow.md", "docs/requirements/13-display-action-response.md"],
+      "owns": [
+        "docs/requirements/12-user-interface-flow.md",
+        "docs/requirements/13-display-action-response.md"
+      ],
       "must_resolve": [
         "同步四态（含新增的『同步失败』）在界面上的呈现差异——决策树 §四 已给出四个分支，需逐个定义界面行为",
         "判定级别 T0/T1/T2 的降级标记如何可见（A9 对策：降级须让学习者先看见）",
@@ -98,7 +152,10 @@
         "docs/requirements/03-data-dictionary.md",
         "docs/requirements/04-state-table.md"
       ],
-      "owns": ["docs/requirements/14-roles-permissions-matrix.md", "docs/requirements/15-requirements-mapping-matrix.md"],
+      "owns": [
+        "docs/requirements/14-roles-permissions-matrix.md",
+        "docs/requirements/15-requirements-mapping-matrix.md"
+      ],
       "must_resolve": [
         "单写者约束的完整落表：教练官唯一写 learner-state、记忆官唯一写 chunk-ledger 调度栏、选材官唯一写 corpus、判读官唯一写 error-book",
         "RMM 检查『有没有需求没有流程支撑 / 有没有流程没需求』——注意：处理流程与用例在另一批次，RMM 须留出占位并标为待回填",
@@ -125,7 +182,10 @@
         "docs/requirements/07-decision-tree.md",
         "docs/org-design.md"
       ],
-      "owns": ["docs/requirements/16-process-flow.md", "docs/requirements/17-use-case.md"],
+      "owns": [
+        "docs/requirements/16-process-flow.md",
+        "docs/requirements/17-use-case.md"
+      ],
       "must_resolve": [
         "唤起协议六条（继续/2分钟/5分钟/15分钟/只要听/太难了/停）逐条展开为完整用例，含前提、主路径、替代路径、异常",
         "跨角色交接泳道：学习者 / 教练官 / 判读官 / 记忆官",
@@ -135,6 +195,65 @@
         "每个用例含前提/主路径/替代路径/异常四段",
         "用例步数按 7±2 拆分，超限则拆为多个用例",
         "用例直接支撑 app-design 的 AC 十一条可测性"
+      ]
+    },
+    {
+      "id": "batch-10-fix-ui-flow",
+      "agent": "domain-agent-e",
+      "correction_of": "batch-08-ui-dar",
+      "trigger": "L2 独立判别器 VERDICT：12-user-interface-flow.md 不达标",
+      "goal": "按 L2 指控重算 §7.1 逐屏进出边表并修正框数与均边数声明，使 E5 证明表可由 §三–§六 边台账机械推出",
+      "cards": [
+        "/Users/mac/Library/Application Support/com.ai-toolbox/skills/visual-models-requirements-skill/references/capabilities/user-interface-flow.md"
+      ],
+      "inputs": [
+        "docs/requirements/12-user-interface-flow.md"
+      ],
+      "owns": [
+        "docs/requirements/12-user-interface-flow.md"
+      ],
+      "must_resolve": [
+        "§7.1 逐屏进出边表逐格对齐 §三–§六 的 43 条边台账，I2 补漏记入边，M7 的伪造标签 D1' 换成真实边标签",
+        "§七.3「平均 2.4 条出边」的口径：说明 43 条边中有 4 条源为非屏幕节点（◇ 决定框 3 条 + 唤起入口 1 条），屏屏边实为 39 条",
+        "§七.4 子图框数声明与 ASCII 图内实测一致",
+        "§7.2「与处理流程/用例核对完整性」标为未完成的挂账——批次 7/9 已产出，须据实更新",
+        "frontmatter 的 batch 字段改写为 batch-10-fix-ui-flow"
+      ],
+      "acceptance": [
+        "§7.1 每一格可由 §三–§六 台账机械推出，不得出现台账中不存在的标签",
+        "所有数字声明（N 框 / N 边 / 平均值）由正文可数结构直接得出",
+        "不得改动本文件以外的任何文件——发现别处的问题只写进 open_questions"
+      ],
+      "frontmatter_policy": "frontmatter 的 batch 必须改写为本批 id。description 中的计数若因本批修正而失准，**允许并要求一并更新**——frontmatter 的 description 本身就是一条数字声明，留着旧数字等于坐实死法 S4。其余字段（title / model_source / status / model）一律不得改。"
+    },
+    {
+      "id": "batch-11-fix-rmm",
+      "agent": "domain-agent-f",
+      "correction_of": "batch-06-rp-rmm",
+      "trigger": "L2 独立判别器 VERDICT：15-requirements-mapping-matrix.md 无法判定（流程/用例两列全为占位）",
+      "goal": "批次 7/9 已产出处理流程与用例，RMM 的流程步骤映射与用例映射两列现已可回填；同时修掉 REQ-066 规则残留的三态表述",
+      "cards": [
+        "/Users/mac/Library/Application Support/com.ai-toolbox/skills/visual-models-requirements-skill/references/capabilities/requirements-mapping-matrix.md"
+      ],
+      "inputs": [
+        "docs/requirements/15-requirements-mapping-matrix.md",
+        "docs/requirements/16-process-flow.md",
+        "docs/requirements/17-use-case.md",
+        "docs/requirements/07-decision-tree.md"
+      ],
+      "owns": [
+        "docs/requirements/15-requirements-mapping-matrix.md"
+      ],
+      "must_resolve": [
+        "把两列 ⏳7 占位替换为对 16/17 的真实映射；映射不到的需求须显式标注理由，不得留空或含糊",
+        "REQ-066 规则写「三态 + 同步失败」，需求正文写「四态」——统一为四态，与 DD703 一致",
+        "RMM 若引用 DD 编号，须逐一核对在 03-data-dictionary.md 中确有定义",
+        "frontmatter 的 batch 字段改写为 batch-11-fix-rmm"
+      ],
+      "acceptance": [
+        "两列占位清零或转为有据的显式例外，且例外逐条写明理由",
+        "全文 DD 引用零悬空",
+        "不得改动本文件以外的任何文件"
       ]
     }
   ],
@@ -146,6 +265,6 @@
       "self_check: {卡内完成标准逐条: 达标/未达标 + 证据}",
       "l1_result: 校验器输出摘要"
     ],
-    "forbid": "域 agent 直接修改非 owns 文件——违反即视为逃逸"
+    "forbid": "域 agent 直接修改或创建非 owns 文件——违反即视为逃逸，无「内容正确」的豁免"
   }
 }
