@@ -536,7 +536,77 @@ TARGETED: list[tuple[str, str, str, str]] = [
      "len(re.findall(r'^\\s*-\\s\\*\\*EX\\d+\\*\\*｜', t, re.M))", '异常路径条数'),
     ('17-use-case.md', '(\\d+) 条以「转决策树 §X」收口',
      "len(re.findall(r'^\\s*-\\s\\*\\*(?:AC|EX)\\d+\\*\\*｜[^\\n]*决策树', t, re.M))", '转决策树收口的分支数'),
-]
+# ── 来自 proposals/batch-A-04-to-07.json 与 batch-B-10-to-12.json；编排者独立复算 19/19 一致（声明=实测 + 改声明可测 + 删正文任一行可测）。
+#    B5「均为 2 值」原提案用 max，实测漏报（某条件掉到 1 值仍判过），
+#    已按「全等」真义拆为 min/max 两条。04 两条为本轮修正文档后新增。 ──
+    ('04-state-table.md', '状态表——(\\d+) 个对象',
+     "t.count('| 初 ＼ 标 |')", '状态表张数（front-matter 标题「8 个对象的生命周期穷举」）'),
+    ('04-state-table.md', '筛出 (\\d+) 个入选建表',
+     "len(re.findall(r'^\\| [^\\-|][^|]*\\|', t.split('| 入选 |')[1].split('**排除')[0], re.M))", '入选建表数（§零 E1 入选表行数）'),
+    ('04-state-table.md', '复活路径清单（(\\d+) 条）',
+     "len(re.findall(r'^\\| [①②③④⑤⑥] \\|', t, re.M))", '复活路径条数（§九 清单行数）'),
+    ('06-decision-table.md', '简化后 8 列 → (\\d+) 条规则',
+     "len(re.findall(r'^\\| R\\d+ \\|[^|]*\\|[^|]*\\|[^|]*\\| (?!\\s*X\\s*\\|)', t.split('## 一、DT-1')[1].split('## 二、')[0], re.M))", 'DT-1 简化后实质规则数'),
+    ('06-decision-table.md', '均为 (\\d+) 值',
+     "min([len(re.findall(r'·', l)) for l in t.split('## 一、DT-1')[1].split('**简化前完整表**')[0].splitlines() if l.startswith('| C')]) + 1", 'DT-1 三条件选择数下界（min 端：某条件掉档即 FAIL）'),
+    ('06-decision-table.md', '均为 (\\d+) 值',
+     "max([len(re.findall(r'·', l)) for l in t.split('## 一、DT-1')[1].split('**简化前完整表**')[0].splitlines() if l.startswith('| C')]) + 1", 'DT-1 三条件选择数上界（max 端：某条件加档即 FAIL）'),
+    ('07-decision-tree.md', '其余 (\\d+) 个判断全在系统内自动完成',
+     "len(re.findall(r'◇[^\\n]*？', t.split('## 三、')[1].split('## 四、')[0]))", '§三 队列取用树内的系统内判断数'),
+    ('10-data-flow-diagram.md', '逐条登记 (\\d+) 条数据流',
+     "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|', t, re.M))", '数据流条数'),
+    ('10-data-flow-diagram.md', 'L1 取 (\\d+) 个流程',
+     "len(re.findall(r'^\\|\\s*\\*\\*P\\d+\\*\\*\\s*\\|', t.split('## 二、确定流程')[1].split('## 三、')[0], re.M))", 'L1 流程数'),
+    ('10-data-flow-diagram.md', '本图的 (\\d+) 个存储区',
+     "len(re.findall(r'^\\|\\s*\\*\\*D\\d+\\*\\*\\s*\\|', t.split('## 一、确定业务数据对象')[1].split('## 二、')[0], re.M))", '数据存储区数'),
+    ('10-data-flow-diagram.md', '(\\d+) 个外部实体，全部来自',
+     "len(re.findall(r'^\\|\\s*\\*\\*E\\d+\\*\\*\\s*\\|', t.split('## 三、确定外部实体')[1].split('## 四、')[0], re.M))", '外部实体数'),
+    ('10-data-flow-diagram.md', '网络流只有 (\\d+) 条',
+     "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|[^|]*\\|[^|]*\\|[^|]*\\|\\s*网络\\s*\\|', t, re.M))", '网络载体流条数'),
+    ('10-data-flow-diagram.md', '其余 (\\d+) 条流仍构成完整闭环',
+     "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|[^|]*\\|[^|]*\\|[^|]*\\|(?!\\s*网络\\s*\\|)[^|]*\\|', t, re.M))", '非网络流条数'),
+    ('11-system-flow.md', '§9\\.1，(\\d+) 条',
+     "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.1')[1].split('### 9.2')[0], re.M))", '§9.1 L1 补偿条目数'),
+    ('11-system-flow.md', '§9\\.1 L1 九步 (\\d+) 条',
+     "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.1')[1].split('### 9.2')[0], re.M))", '§9.1 声明处（§十② / §九自检）L1 条数'),
+    ('11-system-flow.md', 'L2 细分步覆盖 (\\d+) 条',
+     "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.2')[1].split('## 十、')[0], re.M))", '§9.2 L2 补偿条目数'),
+    ('11-system-flow.md', 'L1 端到端 (\\d+) 步',
+     "len(re.findall(r'^│  1\\.\\d ', t.split('## 二、L1 系统流程')[1].split('## 三、')[0], re.M))", 'L1 端到端步数'),
+    ('11-system-flow.md', 'L1 步骤数 (\\d+) ≤ 20',
+     "len(re.findall(r'^│  1\\.\\d ', t.split('## 二、L1 系统流程')[1].split('## 三、')[0], re.M))", 'L1 步骤数（卡内 ≤20 上限自检）'),
+    ('11-system-flow.md', '泳道全部为系统（(\\d+) 条',
+     "len(re.findall(r'^\\| [^|]+ \\| (?:L[0-9]|组)', t.split('### 0.3 泳道来源')[1].split('**11 条泳道')[0], re.M))", '泳道数'),
+    ('11-system-flow.md', '最长 L2 为 §六 补切链 (\\d+) 步',
+     "len(re.findall(r'^1\\.8\\.\\d', t.split('## 六、L2 · 1.8')[1].split('**补偿策略')[0], re.M))", '§六 补切链步数'),
+    ('12-user-interface-flow.md', '规范屏幕清单（(\\d+) 个）',
+     "len(re.findall(r'^\\|\\s*S\\d+\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))", '规范屏幕数（§二）'),
+    ('12-user-interface-flow.md', '(\\d+) 个规范屏幕，按死法 A8',
+     "len(re.findall(r'^\\|\\s*S\\d+\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))", '规范屏幕数（frontmatter）'),
+    ('12-user-interface-flow.md', '全表 (\\d+) 条边中有',
+     "len(re.findall(r'^\\|\\s*[ABCD]\\d+\\s*\\|', t.split('## 三、子图 A')[1].split('### 7.1')[0], re.M))", '箭头台账总边数'),
+    ('12-user-interface-flow.md', '有 \\*\\*(\\d+) 条的源不是屏幕\\*\\*',
+     "len(re.findall(r'^\\|\\s*[ABCD]\\d+\\s*\\|\\s*(?:◇|唤起入口)', t.split('## 三、子图 A')[1].split('### 7.1')[0], re.M))", '非屏幕源边数'),
+    ('12-user-interface-flow.md', '去重后全模型共 (\\d+) 个屏幕框',
+     "len(set(re.findall(r'│\\s*(?:▲\\s*)?(I(?:[1-9]|10)|M[1-8])\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))", '全模型屏幕框数（frontmatter）'),
+    ('12-user-interface-flow.md', 'iOS 侧 (\\d+) 框',
+     "len(set(re.findall(r'│\\s*(?:▲\\s*)?(I(?:[1-9]|10))\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))", 'iOS 侧框数'),
+    ('12-user-interface-flow.md', 'macOS 侧 (\\d+) 框',
+     "len(set(re.findall(r'│\\s*(?:▲\\s*)?(M[1-8])\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))", 'macOS 侧框数'),
+    ('12-user-interface-flow.md', '(\\d+) 张子图，框数 \\*\\*6 / 7 / 4 / 7\\*\\*',
+     "len(re.findall(r'^## [三四五六]、子图 [A-D]', t, re.M))", '子图张数'),
+    ('12-user-interface-flow.md', '(\\d+) 张子图，框数 6/7/4/7',
+     "len(re.findall(r'^## [三四五六]、子图 [A-D]', t, re.M))", '子图张数（§9.4 契约验收项）'),
+    ('12-user-interface-flow.md', '仍有 (\\d+) 处缺口',
+     "len(re.findall(r'^\\|\\s*G[1-4]\\s*\\|', t.split('**4 处缺口')[1].split('**其余无出处的')[0], re.M))", '§7.4 缺口数 G1–G4'),
+    ('12-user-interface-flow.md', '只共享 (\\d+) 个规范屏幕名',
+     "len(re.findall(r'^\\|\\s*S(?:2|3|4|11)\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))", '两设备共享的规范屏幕名数'),
+    ('12-user-interface-flow.md', '偏离范围仅限 (\\d+) 个规范屏幕',
+     "len(re.findall(r'^\\|\\s*S(?:2|3|4|11)\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))", '偏离范围屏幕数（§7.3 B段自查）'),
+    ('04-state-table.md', '排除 (\\d+) 个对象',
+     "sum(len(c.split('/')) for c in [l.split('|')[1] for l in t.split('| 排除对象 | 理由 |')[1].split('**建模口径偏离')[0].splitlines() if l.startswith('| ') and '---' not in l])", '§零 排除表实枚举对象数（含「/」并列展开，术语/语块为本轮补入）'),
+    ('04-state-table.md', '全表共 \\*\\*(\\d+)\\*\\* 个「无」格',
+     "len(re.findall(r'(?<=\\| )无(?= \\||$)', t))", '全表「无」格数（零宽口径；str.count 会因相邻格共用竖线漏计 20 处）'),]
 
 
 def _comp_rows(t: str) -> int:
@@ -587,6 +657,15 @@ def check_targeted_declarations() -> None:
             fail(fname, "CNT007", f"提取器执行失败：{type(e).__name__}（{expr[:40]}）")
             continue
         declared_n = int(m.group(1))
+        if declared_n > 0 and actual_n == 0:
+            # 声明为正而实测为 0，几乎总是「提取器锚点失效」（小节改名、被搬走）
+            # 而不是「文档内容真的清零了」。报 CNT008 而不是 CNT006——
+            # 误报率高的门禁会被整体忽略（告警疲劳比漏报更危险），
+            # 而这 35 条绑定里有 25 条依赖小节标题切片，锚点是它们的真实故障面。
+            warn(fname, "CNT008",
+                 f"「{label}」声明 {declared_n} 但提取器取到 0——小节锚点可能已失效，"
+                 "请检查 claim_regex / extractor 里的标题锚点")
+            continue
         if declared_n != actual_n:
             fail(fname, "CNT006", f"声明 {label} {declared_n}，正文实测 {actual_n}")
         else:

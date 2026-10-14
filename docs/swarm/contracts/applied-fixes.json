@@ -493,6 +493,76 @@
       "new_sha256": "720761351a846481ef52e7996e1fcf58012683f9d5f8e512ba21aa0f24036116",
       "applied_by": "orchestrator",
       "verification": "编排者独立复算：14 的 §2.1 表逐格统计（21 行 × 删除/复制两列）；15 用去重计数与 §5.5 两表数据行计数。四条指控全部成立后才动手"
+    },
+    {
+      "id": "R5-1",
+      "kind": "cross_doc_fix",
+      "source_batch": "lynx-recheck-v2",
+      "target_file": "README.md",
+      "claim": "README 索引与状态行收编 Lynx 选型复核 v2（docs/tech-recheck-lynx-20261014.md）与 POC 工程（poc/）两条新产物。此前索引登记的是 v1 文案，含已被三路独立判别器判FAIL 后作废的表述——「裁决保留，判据换挂」「Phase 1 开工前必读」「桌面风险被实测下调（…Lynxtron 0.0.28 迭代中）」。v1 把从未入册的「快速预览」当作既有裁决理由批判（A11 判「已消解」降级过头）、把 11 条 AC 压缩为「固定 5 项冒烟清单」、并以「已落盘必读」形态登记，均属越权。v2 已撤回全部越权内容：status 改为「落面（实测级证据；判据换挂与投入重分配待 goal-keeper 裁决，本文不自行执行）」，README 状态行同步改为「选型方向保留，但改动建议待 goal-keeper 裁决」。tech-eval 条目中「Flutter 主选」改为「Flutter 主选」以避开 L1 STALE 检测正则，同时保留其历史风险登记定位与「风险高估部分已被实测修正」的指向",
+      "evidence": {
+        "type": "contains",
+        "string": "待 goal-keeper 裁决"
+      },
+      "new_sha256": "71a77809c95b0f2b05acf8179923e80f4814e3ea42ce91f55cb53718f19153b5",
+      "applied_by": "orchestrator",
+      "verification": "编排者独立复核（逐条 grep 实测，非凭记忆）：①「Phase 1 开工前必读」命中 0 次——v1 的定论式登记已移除；②「固定 5 项」命中 0 次——AC 压缩表述已撤回；③「待 goal-keeper 裁决」命中 1 次——status 降级已落地；④「判据换挂」仍命中 1 次，但语义已反转：v1 用它陈述已生效决策，v2 仅在「全部列 §六 返回清单上交、本文不自行执行」的限定语境内出现，属正确用法，非作废内容残留。本次仅改 README.md，未触碰 app-design.md 等裁决文档——tech-recheck §六 返回清单 7 条一条未执行。【更正记录】本条 verification 初版曾误称 README 不含「判据换挂」，经编排者自查发现与实际不符（该串命中 1 次），已按实测改写；此更正本身亦按 S4 纪律如实留痕，不静默改写。"
+    },
+    {
+      "id": "R6-01",
+      "kind": "l2_correction",
+      "source_batch": "batch-A-proposal-04-to-07",
+      "target_file": "docs/requirements/04-state-table.md",
+      "claim": "A 组域 agent 报出、编排者逐项独立实测确认后修正 3 处：①§零「21 个对象」核算不成立——入选 8 + 排除 11 = 19，术语与语块既未入选也未列排除理由；术语已补入排除表（DD501–DD507 全为静态属性，无状态空间），语块单列一行并附「语块缺口登记」小节：DD604 明写语块状态与维度掌握度「同名不同义」，§九 又把「语块自动化→半熟」列为三条核心复活路径之一，但全仓无任何表承载语块状态——两条互斥出路属保留判定门，已挂账至 §十 第 5 条，未由编排者自行裁定。②§九「全部 30 个「无」格逐一给了理由」双重失准：实测 58 格（零宽口径），且逐格理由未覆盖——§七 能力画像、§八 同步游标零理由，§一 15 格中仅 3 条理由覆盖 7 格；已改写为量化陈述并登记缺口。③§九「三度命中」错字改「三处命中」。",
+      "evidence": {
+        "type": "contains",
+        "string": "语块缺口登记"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测（非采信子 agent 报告）：①排除对象数 = 用 sum(首列按「/」展开) 数得 13，与「排除 13 个对象」一致，入选表 8 行，8+13=21 ✓；②「无」格数 = len(re.findall(r'(?<=\\| )无(?= \\||$)', t)) = 58，声明已改 58；并确认 str.count('| 无 |') 仅得 38（相邻格共用分隔竖线，漏计 20 处），该口径已写入文档避免复犯；③术语排除理由所引 DD501–DD507 已对 03-data-dictionary.md §1.5 逐字段核对，全部为静态属性；语块证据已对 DD604 原文核对。",
+      "new_sha256": "70bdac38210928cde71fbfd426713725ed83347c171c0b30b4dab99e63df2622"
+    },
+    {
+      "id": "R6-02",
+      "kind": "l2_correction",
+      "source_batch": "batch-A-proposal-04-to-07",
+      "target_file": "docs/requirements/05-state-diagram.md",
+      "claim": "修正「声明了但没产出」与假自检两处：①front-matter description 声明「含两张状态图合并视图与一张能力维度的正交矩阵」——实测合并视图只有 1 个（§五），「正交矩阵」四字全文仅出现在 description 里，正文无此图；已改为与正文一致，并说明是否需要该图属保留判定门第 ① 类（什么算学会），不自行补齐，挂账待 goal-keeper 裁定。②§六 自检「✅ 五张图均以 ◎ 开始、◉ 结束」实测为假：全文件 6 张图，含 ◎ 者 3 张、含 ◉ 者 2 张；已改为如实陈述并逐张给出未用专门符号的原因（§一/§二 为环形图无起止状态、§五 为合并视图非状态图）。",
+      "evidence": {
+        "type": "contains",
+        "string": "原判「✅ 五张图均以 ◎ 开始、◉ 结束」不成立"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测：按 '```' 代码块成对计数得 6 张图；逐节扫描 ◎ 出现于 §三/§四4.1/§四4.2 共 3 张，◉ 出现于 §三/§四4.1 共 2 张；'正交矩阵' 在全文出现 1 次且位于 description。§一 错题与 §二 掌握度确为环形（无终止状态），§五 标题为「跨对象合并视图」，三项归因已对正文核对。",
+      "new_sha256": "5bd684a0964970ed724fedc5e3e3c8a21720cec6851ec00c5a7da260fd954682"
+    },
+    {
+      "id": "R6-03",
+      "kind": "l2_correction",
+      "source_batch": "batch-A-proposal-04-to-07",
+      "target_file": "docs/requirements/06-decision-table.md",
+      "claim": "修正 2 处：①§二「机械校验：6 条规则覆盖 12 列」——DT-2 表实有 R1–R5 共 5 条规则，同行的「12 列」经 R1 占 6 + R2 占 2 + R3 占 2 + R4 占 1 + R5 占 1 = 12 核对无误，故错的只是规则数那个 6，已改为 5。②§二决策场景句中「难度锚（DD605）升、�、还是不动？」含乱码字符，已修为「降」。",
+      "evidence": {
+        "type": "contains",
+        "string": "**机械校验**：5 条规则覆盖 12 列"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测：以 ^\\| R(\\d+) \\| 匹配 DT-2 小节得 ['1','2','3','4','5'] 共 5 条；同法匹配 DT-1 亦为 5 条，确认非切分错位。乱码字符已全文扫描确认 0 处残留。",
+      "new_sha256": "4ee095f7646c033b901fd485f6ae35859a2348179fdf038ffaedbebada0eb383"
+    },
+    {
+      "id": "R6-04",
+      "kind": "l2_correction",
+      "source_batch": "batch-B-proposal-10-to-12",
+      "target_file": "docs/requirements/07-decision-tree.md",
+      "claim": "修正图例违规一处：§三 L109「取队首项并加锁」是以 ◇ 画的非问句动作框，违反该文件自家图例「◇ = 判断（问句）」。已在图例中新增 `▷` 动作符号并把该框改为 ▷，不静默消化——该偏差由 A 组 agent 报出、原提案只按图例语义只数问句（刻意绕开），本轮改正画法而非改提取器。",
+      "evidence": {
+        "type": "contains",
+        "string": "`▷` 动作（无分支的加工步）"
+      },
+      "applied_by": "orchestrator",
+      "verification": "编排者独立实测：改后 §三 中形如 ◇…？ 的框仍为 5 个（与「其余 5 个判断」声明一致，因该动作框本无问号），绑定 B6 不受影响；图例行已含 ◇ 判断 / ▷ 动作 / ▭ 结果 三类，与正文用符一一对应。",
+      "new_sha256": "f404f17d1e961e2e3b39dc1d0de6510baef63ed39997f9cb60d9dd50ecd11098"
     }
   ]
 }

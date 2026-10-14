@@ -1,0 +1,398 @@
+{
+  "batch": "B · 10–12",
+  "schema": "swarm-batch-contract/v1",
+  "generated_by": "domain-agent-i2（批次 B）",
+  "generated_at": "2026-10-14T14:32:00+08:00",
+  "note": "只绑定已逐条反证通过（declared==actual，且「改声明数字」与「定点删正文行」两种变异都能被提取器测出）的声明。声明数≠实测数的声明一律不绑定，登记在 rejected 与返回清单 open_questions——绑定一条当前就是错的声明会让 L1 直接变红，而修文档不在本批文件所有权内。反证全部在 /tmp 下用文档副本做，仓库内 docs/requirements/ 零改动。同一事实的多处复述（同数字不同句）刻意同绑多条：任一处漂移都能被抓，而不是只守住最先写下的那一句。",
+  "bindings": [
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "逐条登记 (\\d+) 条数据流",
+      "label": "数据流条数",
+      "extractor": "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　台账首列形如 `| F1 |`…`| F50 |`；F 行只出现在 §五 的 5.1–5.5 五张表内，§七 六动作表写的是 `P3·F32` 这类行内引用、不在行首单独成格，不会重复计数。实测 F1–F50 去重后仍为 50（无跳号、无重号）。",
+      "proof": {
+        "declared": 50,
+        "actual": 50,
+        "mutated_declared": 99,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| F33 | 事实行（派生唯一输入）…` 整行 → actual 49，判 FAIL"
+      }
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "L1 取 (\\d+) 个流程",
+      "label": "L1 流程数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*P\\d+\\*\\*\\s*\\|', t.split('## 二、确定流程')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§二 流程表首列形如 `| **P1** |`。切片锚 §二–§三；§七 7.4 的流程表用「P1 编排并交付会话」形式（无 `**`），本来就在切片外，双重隔离。",
+      "proof": {
+        "declared": 6,
+        "actual": 6,
+        "mutated_declared": 7,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| **P6** | 合账跨设备账本 …` 整行 → actual 5，判 FAIL"
+      }
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "本图的 (\\d+) 个存储区",
+      "label": "数据存储区数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*D\\d+\\*\\*\\s*\\|', t.split('## 一、确定业务数据对象')[1].split('## 二、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§一 存储区表首列形如 `| **D1** |`。claim 锚在 §0.1 的论证句。§七 7.1 用「D1 事实追加区」形式（无 `**`），在切片外。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| **D9** | 周度触点区 …` 整行 → actual 8，判 FAIL"
+      }
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "(\\d+) 个外部实体，全部来自",
+      "label": "外部实体数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*E\\d+\\*\\*\\s*\\|', t.split('## 三、确定外部实体')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§三 外部实体表首列形如 `| **E1** |`。claim 锚在 §三 首句。§七 7.3 用「E2 / E3 / E8」这类裸编号引用，在切片外。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| **E9** | 后台音频播放 | 系统 | 组 3 |` 整行 → actual 8，判 FAIL"
+      }
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "网络流只有 (\\d+) 条",
+      "label": "网络载体流条数",
+      "extractor": "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|[^|]*\\|[^|]*\\|[^|]*\\|\\s*网络\\s*\\|', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　按台账「载体」列（索引 3）精确取 `网络`。不能用 `startswith('网络')`：F31 的载体是 `内存→文件`，那是跨介质的第四条取值，既不算网络也不该算纯内存——本条与下一条都靠「精确等值而非前缀」把这类行排除在同一侧口径之外。列序 ID/数据流/来源/终点/载体/规模/备注，故需 `[^|]*` 跳 3 格才到载体列。",
+      "proof": {
+        "declared": 7,
+        "actual": 7,
+        "mutated_declared": 8,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| F49 | 对端账本副本 | E5 | P6 | 网络 | 全量 | …` 整行 → actual 6，判 FAIL"
+      }
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim_regex": "其余 (\\d+) 条流仍构成完整闭环",
+      "label": "非网络流条数",
+      "extractor": "len(re.findall(r'^\\|\\s*F\\d+\\s*\\|[^|]*\\|[^|]*\\|[^|]*\\|(?!\\s*网络\\s*\\|)[^|]*\\|', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　上一条的补集：50 − 7 = 43。两条同绑的意义：任一行若载体列写成第三种记号（如 F31 的 `内存→文件`），它同时落不进 7 与 43——单绑一条时「漏数」方向不可见，两条同绑时该行会被算进 43 而不改变任何结论，正好暴露口径缺口；反之若载体列写错成别的值，两条至少一条会红。",
+      "proof": {
+        "declared": 43,
+        "actual": 43,
+        "mutated_declared": 44,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| F50 | 合账写回 …` 整行 → actual 42，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "§9\\.1，(\\d+) 条",
+      "label": "§9.1 L1 补偿条目数",
+      "extractor": "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.1')[1].split('### 9.2')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§9.1 表首列形如 `| 1.1 校验账本可用性 |`（同一 L1 步骤的多条失败模式重复写 `| 1.1 |`），故按「行数」而非「步骤数」计——这正是 17 的口径：9 个 L1 步骤摊出 17 条失败模式。切片必须同时锚 §9.1 与 §9.2，否则会把 14 条 L2 一起数进来得 31。",
+      "proof": {
+        "declared": 17,
+        "actual": 17,
+        "mutated_declared": 18,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| 1.9 会话收尾与同步 | 同步失败 | …` 整行 → actual 16，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "§9\\.1 L1 九步 (\\d+) 条",
+      "label": "§9.1 声明处（§十② / §九自检）L1 条数",
+      "extractor": "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.1')[1].split('### 9.2')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　与上一条同提取器同切片，但 claim 锚在 §十 ② 与 §九·自检两处的独立复述（「§9.1 L1 九步 17 条 + §9.2 L2 细分步 14 条」）。同绑的意义：上一条守 §九 的诚实声明句，本条守 §十/自检的复述句——三处复述里任何一处漂移都能被抓，而这里正是历史上出过 32 / 40 两次错的位置。",
+      "proof": {
+        "declared": 17,
+        "actual": 17,
+        "mutated_declared": 18,
+        "detects_mutation": true,
+        "structure_mutation": "同上一条：删 `| 1.9 会话收尾与同步 |` 整行 → actual 16，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "L2 细分步覆盖 (\\d+) 条",
+      "label": "§9.2 L2 补偿条目数",
+      "extractor": "len(re.findall(r'^\\|\\s*1\\.[0-9]', t.split('### 9.2')[1].split('## 十、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§9.2 表首列形如 `| 1.2.2 读快照 |`。切片锚 §9.2 与 §十。§9.2 含 `1.6.x`/`1.7.x`/`1.8.4–1.8.7`/`1.3 锁 TTL` 等非标准步号写法，一律按行计数。与 §9.1 的两条绑定构成加法：17 + 14 = 31，与既有 `_comp_rows(t)` 绑定的 31 一致，三者互为交叉验证。",
+      "proof": {
+        "declared": 14,
+        "actual": 14,
+        "mutated_declared": 15,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| 1.4.4 TTS 合成 | 失败 | B0 项作废 + 留痕（§八 E-4） | 幂等 |` 整行 → actual 13，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "L1 端到端 (\\d+) 步",
+      "label": "L1 端到端步数",
+      "extractor": "len(re.findall(r'^│  1\\.\\d ', t.split('## 二、L1 系统流程')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　frontmatter description 声明处。§二 ASCII 泳道图内步骤行行首形如 `│  1.1 接收唤起并校验账本可用性 …`，用「全角竖线 + 两空格 + 1.N + 空格」定位；切片内恰 9 条（1.1…1.9），§0.4 的 `1.0 上一次会话被中断` 是行内反引号引用、不在行首带竖线，不会误计。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "删 `│  1.9 会话收尾与同步 ───…` 整行 → actual 8，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "L1 步骤数 (\\d+) ≤ 20",
+      "label": "L1 步骤数（卡内 ≤20 上限自检）",
+      "extractor": "len(re.findall(r'^│  1\\.\\d ', t.split('## 二、L1 系统流程')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　同一切片、同一提取器，claim 锚在 §二 末的上限自检句。与 frontmatter 那条同绑的意义：文档头与正文两处独立声明同一事实，任一处漂移都能被抓。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "同上一条：删 `│  1.9 会话收尾与同步 ───…` 整行 → actual 8，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "泳道全部为系统（(\\d+) 条",
+      "label": "泳道数",
+      "extractor": "len(re.findall(r'^\\| [^|]+ \\| (?:L[0-9]|组)', t.split('### 0.3 泳道来源')[1].split('**11 条泳道')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§0.3 泳道表第二列取值域为 `L0/L1/L2/L3/L4/组 3/组 4/组 5`，故按「行首 `| <名> | ` + 第二列以 L 或 组 开头」定位，不依赖泳道名本身（改名不影响计数）。切片锚在 §0.3 与紧随的「**11 条泳道…✅」自检句之间——刻意把自检句排除在外，避免 claim 文本自身被当成表行。",
+      "proof": {
+        "declared": 11,
+        "actual": 11,
+        "mutated_declared": 12,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| 开发/运维侧（编辑器 / CLI 壳 / 补切脚本） | 组 5 | 组 5 |` 整行 → actual 10，判 FAIL"
+      }
+    },
+    {
+      "file": "11-system-flow.md",
+      "claim_regex": "最长 L2 为 §六 补切链 (\\d+) 步",
+      "label": "§六 补切链步数",
+      "extractor": "len(re.findall(r'^1\\.8\\.\\d', t.split('## 六、L2 · 1.8')[1].split('**补偿策略')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§六 ASCII 块内步骤行行首形如 `1.8.1  教练核心   …`（无前导竖线，与 §二/§三 画法不同）。切片锚 §六 与紧随的「**补偿策略（与 §5.1 同一原则）」段之间，把补偿策略表排除在外。这条绑的是「最长 L2 步数」这一上界自检——将来 §六 增步而正文没改，L1 直接红。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "删 `1.8.9  教练核心   回写水位 ▸ queue/` 整行 → actual 8，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "规范屏幕清单（(\\d+) 个）",
+      "label": "规范屏幕数（§二）",
+      "extractor": "len(re.findall(r'^\\|\\s*S\\d+\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§二 规范屏幕表首列形如 `| S1 |`。切片锚 §二–§三，§二 末的「屏数守则自检」长段里虽复述 13 但不在行首成格，不会重复计数。",
+      "proof": {
+        "declared": 13,
+        "actual": 13,
+        "mutated_declared": 14,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| S13 | 队列检视 | …` 整行 → actual 12，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "(\\d+) 个规范屏幕，按死法 A8",
+      "label": "规范屏幕数（frontmatter）",
+      "extractor": "len(re.findall(r'^\\|\\s*S\\d+\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　同提取器，claim 锚在 frontmatter description——那里是全文最先声明 13 的地方，也是「13 规范 → 18 框」这条换算的起点。",
+      "proof": {
+        "declared": 13,
+        "actual": 13,
+        "mutated_declared": 14,
+        "detects_mutation": true,
+        "structure_mutation": "同上一条：删 `| S13 | 队列检视 | …` 整行 → actual 12，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "全表 (\\d+) 条边中有",
+      "label": "箭头台账总边数",
+      "extractor": "len(re.findall(r'^\\|\\s*[ABCD]\\d+\\s*\\|', t.split('## 三、子图 A')[1].split('### 7.1')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　四张台账行首形如 `| A1 |`…`| D11 |`，切片覆盖 §三–§六（§7.1 的进出边计数表在其后，不在切片内）。实测 A13 + B11 + C8 + D11 = 43。台账是「边」的唯一权威登记处，§7.1 的进出边汇总只是它的投影。",
+      "proof": {
+        "declared": 43,
+        "actual": 43,
+        "mutated_declared": 44,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| A13 | I5 → I10 | 查看同步状态 | 用户 |` 整行 → actual 42，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "有 \\*\\*(\\d+) 条的源不是屏幕\\*\\*",
+      "label": "非屏幕源边数",
+      "extractor": "len(re.findall(r'^\\|\\s*[ABCD]\\d+\\s*\\|\\s*(?:◇|唤起入口)', t.split('## 三、子图 A')[1].split('### 7.1')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　台账「边」列以 `◇`（冷启动决定框）或 `唤起入口` 开头的行：A1/A3/A7（◇→…）与 C1（唤起入口→M1），恰 4 条。这 4 条只贡献入边、不贡献出边，是「均出边 2.17 而非 43÷18」那一节的全部依据——把它绑住，等于把 §7.3 的推理前提钉死，防止有人日后把 43 直接当屏屏边除。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| C1 | 唤起入口 → M1 | 唤起 | 用户（热键 / 菜单栏） |` 整行 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "去重后全模型共 (\\d+) 个屏幕框",
+      "label": "全模型屏幕框数（frontmatter）",
+      "extractor": "len(set(re.findall(r'│\\s*(?:▲\\s*)?(I(?:[1-9]|10)|M[1-8])\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　只认 §三–§六 四张 ASCII 图里**以框线字符开头**的标签（`│  I6 今日复现` / `│ ▲ M1 主窗`），再按「子图内去重」的同一口径全模型去重。台账行与 §7.1 表用的是 `|` 半角且在行首不同位置，本正则要求前置全角 `│`，天然不误计。实测 iOS I1–I10(10) + macOS M1–M8(8) = 18。注意 `▲` 主屏幕标记与框标签同格，故单独放行。",
+      "proof": {
+        "declared": 18,
+        "actual": 18,
+        "mutated_declared": 19,
+        "detects_mutation": true,
+        "structure_mutation": "删 `│  I10 状态与设置               │◄─── I2 ⟨查看状态与设置⟩` 整行 → actual 17，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "iOS 侧 (\\d+) 框",
+      "label": "iOS 侧框数",
+      "extractor": "len(set(re.findall(r'│\\s*(?:▲\\s*)?(I(?:[1-9]|10))\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　同上正则只取 I 前缀。绑定意义：18 = 10 + 8 这条等式只有两侧都被绑住才成立——只绑 18 时，iOS 少一框 / macOS 多一框的漂移会被互相抵消掉。",
+      "proof": {
+        "declared": 10,
+        "actual": 10,
+        "mutated_declared": 11,
+        "detects_mutation": true,
+        "structure_mutation": "删 `│  I6 今日复现                  │◄─────── I2 ⟨取今日复现⟩` 整行 → actual 9，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "macOS 侧 (\\d+) 框",
+      "label": "macOS 侧框数",
+      "extractor": "len(set(re.findall(r'│\\s*(?:▲\\s*)?(M[1-8])\\s', t.split('## 三、子图 A')[1].split('### 7.1')[0])))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　同上正则只取 M 前缀，与 iOS 侧那条构成加法对（10 + 8 = 18）。",
+      "proof": {
+        "declared": 8,
+        "actual": 8,
+        "mutated_declared": 9,
+        "detects_mutation": true,
+        "structure_mutation": "删 `│ M8 状态与设置 │` 整行 → actual 7，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "(\\d+) 张子图，框数 \\*\\*6 / 7 / 4 / 7\\*\\*",
+      "label": "子图张数",
+      "extractor": "len(re.findall(r'^## [三四五六]、子图 [A-D]', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　四张子图各有独立 `## 三、…## 六、` 标题。按标题计数而非按 §九 9.1 那段枚举文字计数——后者是被校验对象，不能让它自己证明自己。注意 §7.1 等小节标题形如「### 7.1 逐屏…」，`^## ` 锚行首两井号，不会误计。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "删 `## 六、子图 D · macOS 三栏（左右检视区与状态）` 整行标题 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "(\\d+) 张子图，框数 6/7/4/7",
+      "label": "子图张数（§9.4 契约验收项）",
+      "extractor": "len(re.findall(r'^## [三四五六]、子图 [A-D]', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　同提取器，claim 锚在 §9.4 契约验收项那一行的复述（无空格版 `框数 6/7/4/7`）。§9.1 与 §9.4 两处独立复述同一组数字，同绑可抓住任一处漂移。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "同上一条：删 `## 六、子图 D · macOS 三栏（左右检视区与状态）` 整行标题 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "仍有 (\\d+) 处缺口",
+      "label": "§7.4 缺口数 G1–G4",
+      "extractor": "len(re.findall(r'^\\|\\s*G[1-4]\\s*\\|', t.split('**4 处缺口')[1].split('**其余无出处的')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§7.4 缺口登记表首列形如 `| G1 |`。切片锚住该表，避免 §10 挂账里复述的「4 处缺口（G1–G4）」被计入。这条守的是「43 条边的出处分布四类合计 43」那笔账的缺口侧。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "删 `| G4 | **I10 / M8 状态与设置** | A6, A13, B10, B11 | …` 整行 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "只共享 (\\d+) 个规范屏幕名",
+      "label": "两设备共享的规范屏幕名数",
+      "extractor": "len(re.findall(r'^\\|\\s*S(?:2|3|4|11)\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　§8.3 与 §7.3 都声明「偏离范围 / 共享布局」= S2/S3/S4/S11 四屏；这四条的口径是「在 §二 表里 iOS 与 macOS 两列都是独立框标签（形如 I2/M1，无「内区域」「合并入」「不提供」等修饰）」，故按这四个编号在 §二 表中存在即计。此绑定把「哪些屏被允许双形态」这一 A8 偏离的**范围**钉死——范围悄悄扩到 S5/S6/S7/S8 时，本条会红。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "把 §二 表中 `| S11 | 状态与设置 | …` 整行删掉 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim_regex": "偏离范围仅限 (\\d+) 个规范屏幕",
+      "label": "偏离范围屏幕数（§7.3 B段自查）",
+      "extractor": "len(re.findall(r'^\\|\\s*S(?:2|3|4|11)\\s*\\|', t.split('## 二、规范屏幕清单')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是可直接 eval 的表达式，只用变量 t（该文件全文）与 re/len/set（校验器 _SAFE_EVAL 已暴露）；不得含 import / __ 前缀。本机 Python 3.9.6 下推导式的条件与体内按 global 解析，看不到 _run_extractor 传进来的 locals，故一律用 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))。章节锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（可观测失败，不会静默放行）。　与上一条同提取器，claim 锚在 §7.3「不要为所有屏幕变形建独立框」那一行的自查复述。两处独立复述同绑。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "同上一条：删 §二 表 `| S11 |` 整行 → actual 3，判 FAIL"
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "file": "11-system-flow.md",
+      "claim": "§十 ①「L1 的 8 步由 E-1/E-2/E-5/E-8/E-9/E-10/E-11 触发」（11-system-flow.md:457）",
+      "reason": "声明 8，正文实测 9。§二 L1 泳道图实有 1.1–1.9 共 9 步，§二 末的「L1 步骤数 9 ≤ 20」与 frontmatter 的「L1 端到端 9 步」也都写 9——只有 §十 ① 这一处是 8。绑定它会让 L1 直接 FAIL；改文档不在本批所有权内。判定为笔误（应为 9 步），已在 open_questions 登记。"
+    },
+    {
+      "file": "10-data-flow-diagram.md",
+      "claim": "载体分布小结「50 条流中 `文件` 30 条、`内存` 13 条、`网络` 7 条」（10-data-flow-diagram.md:287）",
+      "reason": "实测载体列精确分布为：文件 29、内存 13、网络 7、内存→文件 1（F31 上下文哈希，跨介质），合计 50。声明的「文件 30」是把 F31 的 `内存→文件` 计入了文件侧。按精确等值口径文件侧是 29，与 30 不符。三处网络/内存/总数声明（7 / 13 / 50）本身都成立，故只绑了这三者的补集口径（7 与 43），未绑「文件 30」。口径问题而非算错，但在文档改口径或 F31 载体取值域之前不绑定。"
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim": "§七.3「每个屏幕平均 2.2 条出边（39 条屏屏边 ÷ 18 个屏幕框 = 2.17）」（12-user-interface-flow.md:367）",
+      "reason": "39 与 18 各自都对（实测 43 总边 − 4 非屏幕源边 = 39 屏屏边；18 框），但 2.2 是 2.17 的一次性舍入，且文中同时出现 2.2 与 2.17 两个值。除法结果无法用「数行」表达（需要 round 或截断语义，而 extractor 只有 len/re/set 等原语，不做算术断言），按 SCHEMA「extractor 数出正文实测值」的口径无法反证。改为绑定其两个前提（43 总边、非屏幕源边 4、18 框），让 39 = 43−4 与 2.17 这步推导在事实层被守住。"
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim": "§二 屏数守则自检里的「口径 A = 9（S2/S3/S4/S5/S6/S7/S8/S9/S11）」「口径 B = 4（S2/S3/S4/S11）」（12-user-interface-flow.md:78）",
+      "reason": "两个声明都正确，但口径 A/B 的判定标准是「iOS/macOS 两列是否为独立框标签」——需逐格排除「M5 内空态区」「i9 合并入 I9」「不提供」「不单独设（M1 内模态）」等修饰语，写成正则需要大量负向词表且一旦 §二 表述微调就误判。已用「两设备共享的规范屏幕名数 = 4」（口径 B 的等价且可稳定正则化形式）替代绑定，口径 A 不绑。"
+    },
+    {
+      "file": "12-user-interface-flow.md",
+      "claim": "§九 9.1 逐子图枚举「A=I1,I2,I3,I4,I5,I7（画了 8 个矩形…）；B=…（10 个矩形）；C=M1,M2,M3,M4（5 个矩形）；D=…（8 个矩形）」（12-user-interface-flow.md:485）",
+      "reason": "「矩形数」需按 ASCII 图里的 ┌─┐│└┘ 边框结构计数，而非按框标签计数——同一张图里 I3 被重复画两次作返回目标，正是两种口径的分歧点（矩形 8 vs 框 6）。本提案的 18/10/8/子图数 4 全部走「框标签去重」口径，与 §9.1 自述的框数 6/7/4/7 一致；括号内的矩形数属另一口径，未绑定。"
+    }
+  ],
+  "improvements": [
+    {
+      "target": "tools/verify_docs.py TARGETED 表第 1 条（11-system-flow.md 的 `_comp_rows(t)`）",
+      "finding": "该绑定是正确的，且实测与本提案的 §9.1(17) + §9.2(14) 两条子计数完全自洽（17+14=31），无需替换。",
+      "suggestion": "可选加固：`_comp_rows` 用 `t.split(\"### 9.1\", 1)[1]` 只锚 §9.1 一个标题，尾部一直扫到文末。若将来 §十 之后新增任何以 `| 1.x |` 开头的表（当前 §10 挂账表以 `| 1. |` 数字点开头，恰好不匹配，是巧合而非设计），计数会静默膨胀。建议把切片尾部再锚到 `## 十、`：`len(re.findall(r\"^\\|\\s*1\\.[0-9]\", t.split(\"### 9.1\")[1].split(\"## 十、\")[0], re.M))`。属可选加固，非缺陷，不改也不影响正确性。"
+    },
+    {
+      "target": "tools/verify_docs.py TARGETED 表（11-system-flow.md）",
+      "finding": "既有绑定的 claim_regex 是 `以 (\\d+) 条补偿条目覆盖`，只抓 frontmatter 一处。",
+      "suggestion": "`以 31 条补偿条目覆盖` 这一字串在 §十 ② 与 §九·自检两处也复述了（`§九 以 31 条补偿条目覆盖`、`§九 逐步登记 31 条补偿条目…`）。本提案已用 §9.1/§9.2 的子计数（17 / 14）把这三处复述全部守住——子计数之和恒等于总数，故任一处 31 漂移时至少有一条子绑定会红（例：§10 把 31 改成 30 而 §9.1/§9.2 未动，则 17+14 仍为 31，两条子绑定不红——这是本方案的唯一盲区，见 open_questions）。"
+    }
+  ]
+}
