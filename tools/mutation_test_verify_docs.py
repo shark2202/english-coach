@@ -162,15 +162,24 @@ MUTATIONS: list[tuple[str, str, str]] = [
 
 
 def build_sandbox(dst: Path) -> Path:
-    """复制校验器、自审与契约到沙箱。selftest 的 ROOT 由自身路径推导，
-    因此放在 <sandbox>/tools/ 下时，它加载的就是沙箱里的副本。"""
+    """复制校验器、自审、契约**与需求文档**到沙箱。selftest 的 ROOT 由自身路径推导，
+    因此放在 <sandbox>/tools/ 下时，它加载的就是沙箱里的副本。
+
+    需求文档必须一并复制：自审里的「绑定表活性检查」要拿真实文档做反证，
+    沙箱里缺文档时它会跳过——那正是本文件要消灭的那种「因为错误的原因而通过」。
+    18 份文档合计约 550K，复制代价可忽略。"""
     (dst / "tools").mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "tools" / "verify_docs.py", dst / "tools" / "verify_docs.py")
     shutil.copy2(ROOT / "tools" / "selftest_verify_docs.py", dst / "tools" / "selftest_verify_docs.py")
     contracts = dst / "docs" / "swarm" / "contracts"
     contracts.mkdir(parents=True, exist_ok=True)
     for f in (ROOT / "docs" / "swarm" / "contracts").glob("*.json"):
-        shutil.copy2(f, contracts / f.name)
+        if f.name != "content-manifest.json":   # 锁文件不在沙箱内，MAN003 会先拦下
+            shutil.copy2(f, contracts / f.name)
+    req = dst / "docs" / "requirements"
+    req.mkdir(parents=True, exist_ok=True)
+    for f in (ROOT / "docs" / "requirements").glob("*.md"):
+        shutil.copy2(f, req / f.name)
     return dst / "tools" / "selftest_verify_docs.py"
 
 

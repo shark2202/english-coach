@@ -465,6 +465,34 @@
       },
       "new_sha256": "6f5a123708fa26fd6a58eaf12671d6681bab5f230a54342000efb76224207fc6",
       "applied_by": "orchestrator"
+    },
+    {
+      "id": "R4-14",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/14-roles-permissions-matrix.md",
+      "claim": "域 agent 提案 C 组复核发现并经编排者独立逐格复核确认：§二 2.1 声明「删除列的 21 格中有 14 格为「无」」，实测恰为「无」16 格、以「无」开头 19 格（3 格带括注：旧版本不删 / 走作废不销毁 / 历史全保留）；§七 E2 行同一数字同样失准。另「复制列仅 3 格为「是」」实测为 2 格非「无」（材料、交互轮次），且格子取值是操作编号 1.8 而非「是」",
+      "evidence": {
+        "type": "contains",
+        "string": "复制列 21 格中仅 **2 格非「无」**"
+      },
+      "new_sha256": "f273a85e6a5ff9f247acf9f3a3c98b98982db2722d39ac17fed991fe6a712a8c",
+      "applied_by": "orchestrator",
+      "verification": "编排者独立复算：14 的 §2.1 表逐格统计（21 行 × 删除/复制两列）；15 用去重计数与 §5.5 两表数据行计数。四条指控全部成立后才动手"
+    },
+    {
+      "id": "R4-15",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/15-requirements-mapping-matrix.md",
+      "claim": "域 agent 提案 C 组复核发现并经编排者独立复核确认两处：§五 声明「去重 29 个 DD 编号」实测 28（该节自述「核对须在文字定稿后重跑一次」正是本次失守之处）；§七 声明「§5.5：18 + 16 个步骤」与同文档 §七 前一行「20 个 L1 层对象 + 15 个 L2 步骤」自相矛盾，实测 §5.5 两表恰为 20 + 15 行",
+      "evidence": {
+        "type": "contains",
+        "string": "**28 个不同编号**"
+      },
+      "new_sha256": "228e7b4500a85b03f3247e2c9fcd92d3491303fb12d9e4490e57426f3a562f26",
+      "applied_by": "orchestrator",
+      "verification": "编排者独立复算：14 的 §2.1 表逐格统计（21 行 × 删除/复制两列）；15 用去重计数与 §5.5 两表数据行计数。四条指控全部成立后才动手"
     }
   ]
 }

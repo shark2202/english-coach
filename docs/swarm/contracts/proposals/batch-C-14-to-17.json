@@ -1,0 +1,565 @@
+{
+  "batch": "C · 14–17",
+  "schema": "swarm-batch-contract/v1",
+  "generated_by": "domain-agent-j（批次 C）",
+  "generated_at": "2026-10-14T14:04:00+08:00",
+  "note": "只绑定已逐条反证通过（declared==actual 且变异可测出）的声明。声明数≠实测数的声明一律不绑定，登记在 rejected 与返回清单 open_questions——绑定一条当前就是错的声明会让 L1 直接变红，而修文档不在本批文件所有权内。",
+  "bindings": [
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "(\\d+) 项系统操作",
+      "label": "系统操作行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§三 主矩阵的数据行（首列形如 `1.1`…`6.10`），已排除表头与分隔行；切片锚在 §三 与 §四 之间，改 §二/§四 不影响本绑定。声明出现在 frontmatter title（第 4 行）。",
+      "proof": {
+        "declared": 56,
+        "actual": 56,
+        "mutated_declared": 57,
+        "detects_mutation": true,
+        "structure_mutation": "删 1.9 行 → actual 55，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "(\\d+) 行全否",
+      "label": "主矩阵全否行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|[^|]*\\|(?:\\s*否\\s*\\|){7}', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　列序 编号/系统操作/学/教/选/陪/判/记/兼/说明，故 学…兼 = 索引 3..9 共 7 列；要求 7 列全为「否」。该数与 §九·H3 的「6 行全否操作中」清单是同一事实，抽到 3.3/3.4/6.5/6.6/6.9/6.10。",
+      "proof": {
+        "declared": 6,
+        "actual": 6,
+        "mutated_declared": 7,
+        "detects_mutation": true,
+        "structure_mutation": "把 1.9 的「兼」列由否改是 → actual 5，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 学习者 \\| 1（人类） \\|[^|]*\\|[^|]*\\| (\\d+) \\|",
+      "label": "学习者权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){1}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　口径与 §七·计数口径一致：只计主矩阵中该角色的「是」格（不含派生列）。claim 锚在 §七 部署配置表的该角色行首两格 + 计数格，中间列容错。",
+      "proof": {
+        "declared": 19,
+        "actual": 19,
+        "mutated_declared": 20,
+        "detects_mutation": true,
+        "structure_mutation": "把 5.6 的「学」列由是改否 → actual 18，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 教练官 \\| 1（常驻，按唤起建会话） \\| 教练官提示词 \\|[^|]*\\| (\\d+) \\|",
+      "label": "教练官权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){2}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　同上口径，「教」列 = 索引 4。",
+      "proof": {
+        "declared": 21,
+        "actual": 21,
+        "mutated_declared": 22,
+        "detects_mutation": true,
+        "structure_mutation": "把 1.1 的「教」列由是改否 → actual 20，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 选材官 \\| 按补切任务临时实例化 \\| 选材官提示词 \\|[^|]*\\| (\\d+) \\|",
+      "label": "选材官权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){3}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　「选」列 = 索引 5。claim 用「选材官提示词」与同行的陪练官区分。",
+      "proof": {
+        "declared": 7,
+        "actual": 7,
+        "mutated_declared": 8,
+        "detects_mutation": true,
+        "structure_mutation": "把 2.7 的「选」列由是改否 → actual 6，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 陪练官 \\| 按补切任务临时实例化 \\| 陪练官提示词 \\|[^|]*\\| (\\d+) \\|",
+      "label": "陪练官权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){4}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　「陪」列 = 索引 6。该值 1 是 §一·2 论证过的设计结果，不是缺漏。",
+      "proof": {
+        "declared": 1,
+        "actual": 1,
+        "mutated_declared": 2,
+        "detects_mutation": true,
+        "structure_mutation": "把 2.8 的「陪」列由是改否 → actual 0，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 判读官 \\| 每轮 fresh 实例（不可复用） \\| 判读官提示词 \\|[^|]*\\| (\\d+) \\|",
+      "label": "判读官权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){5}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　「判」列 = 索引 7。",
+      "proof": {
+        "declared": 8,
+        "actual": 8,
+        "mutated_declared": 9,
+        "detects_mutation": true,
+        "structure_mutation": "把 3.5 的「判」列由是改否 → actual 7，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "\\| 记忆官 \\| 1（确定性本地代码，无提示词） \\| — \\|[^|]*\\| (\\d+) \\|",
+      "label": "记忆官权限行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){6}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　「记」列 = 索引 8。本条与其余六条共用同一章节锚 `## 三、角色权限主矩阵`：锚一旦拼错，split 取不到内容会抛 IndexError → CNT007 FAIL（而不是静默放行），属可观测失败。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "把 3.9 的「记」列由是改否 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim_regex": "派生列「教练官·兼帽」的计数为 \\*\\*(\\d+)\\*\\*",
+      "label": "兼帽派生列权限数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){7}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　「兼」列 = 索引 9。§七 声明该列不参与「角色数少」判定，只用于观察降级形态扩张幅度（32 vs 21，差 11 项）。",
+      "proof": {
+        "declared": 32,
+        "actual": 32,
+        "mutated_declared": 33,
+        "detects_mutation": true,
+        "structure_mutation": "把 1.9 的「兼」列由否改是 → actual 33，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) 条需求",
+      "label": "RMM 需求条数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§二 主矩阵的 REQ 行数。§5.2/§5.4/§5.6 也用 `| REQ-0NN |` 行首，但都在切片之外，不会重复计数。",
+      "proof": {
+        "declared": 84,
+        "actual": 84,
+        "mutated_declared": 85,
+        "detects_mutation": true,
+        "structure_mutation": "删 REQ-084 行 → actual 83，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) 个 L2",
+      "label": "RMM 覆盖的 L2 特性数",
+      "extractor": "len(set(re.findall(r'L1-\\d+\\s+[^·|\\n]+·\\s*([^|/\\n]+?)\\s*(?=\\s*\\||\\s*/|\\s*$)', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M)))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　扫描 §二 整段（实测整段扫描与「只取第 3 格特性列」得到完全相同的 49 个，BR 列文本不会误命中，故不再按列切分）。特性列形如「L1-1 语料供给 · 语境域矩阵」，一个需求可并列多个 L2，故先抽出全部 L2 名再去重。注意前瞻必须放行 ` / ` 分隔符——写成只认 `|` 或行尾会漏掉「难度编排」「时间档位」两个 L2（自审已实测该 bug 会得出 47）。实测按 L1 分布为 6/6/5/5/5/6/5/6/5，与 §4.2 合计行 49 逐格吻合。",
+      "proof": {
+        "declared": 49,
+        "actual": 49,
+        "mutated_declared": 48,
+        "detects_mutation": true,
+        "structure_mutation": "删 REQ-042 行（唯一承载「时间档位」的需求行）→ actual 48，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) / 84 有流程步骤",
+      "label": "有流程步骤的需求数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}(?!\\s*❌ 无)[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　列序 REQ/需求陈述/特性/G/BR/L1流程/L2流程/L3/用例落点，故 L1 流程步骤列 = 索引 6。含「X1（部分）」「1.5-B0 仅播放（0 轮）」等部分覆盖与 B0 支路取值。",
+      "proof": {
+        "declared": 30,
+        "actual": 30,
+        "mutated_declared": 31,
+        "detects_mutation": true,
+        "structure_mutation": "把 REQ-036 的 ❌无 改为 1.7 → actual 31，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) 条无流程步骤",
+      "label": "无流程步骤的需求数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　与上一条互为补集（30 + 54 = 84）。两条同绑的意义：任一行若既不计入 30 也不计入 54（写成别的记号），两条里至少一条会红。",
+      "proof": {
+        "declared": 54,
+        "actual": 54,
+        "mutated_declared": 53,
+        "detects_mutation": true,
+        "structure_mutation": "把 REQ-036 的 ❌无 改为 1.7 → actual 53，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) / 84 有用例承接",
+      "label": "有用例承接的需求数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){7}(?!\\s*(?:❌ 无|—))[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　用例落点列 = 索引 9。必须把 `—` 也算作「无用例」：REQ-045 的用例落点是 `—`（有流程无用例），若只排除 `❌ 无` 会得 37。",
+      "proof": {
+        "declared": 36,
+        "actual": 36,
+        "mutated_declared": 37,
+        "detects_mutation": true,
+        "structure_mutation": "把 REQ-068 的用例落点由 ❌无 改为 UC-08 EX3 → actual 37，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) 条两者皆无",
+      "label": "流程与用例两侧皆无的需求数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|(?:[^|]*\\|){2}(?:\\s*❌ 无\\s*|\\s*—\\s*)\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　本批最重要的一个数（47/84 = 56%）。47 不等于 84−30−36（那会重复扣掉 7 条「有用例无流程」），必须逐行判两侧。",
+      "proof": {
+        "declared": 47,
+        "actual": 47,
+        "mutated_declared": 48,
+        "detects_mutation": true,
+        "structure_mutation": "把 REQ-029 的用例落点 ❌无 改为 — → actual 48，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "\\*\\*有用例、无流程步骤\\*\\* \\| \\*\\*(\\d+) 条\\*\\*",
+      "label": "§5.2 有用例无流程步骤的需求条数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.2 需求侧缺口 A')[1].split('### 5.3')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§5.2 登记表的行数。claim 锚在 §5.1 读数总表的该行（`**7 条**`），不会命中 §5.2 标题（标题里没有 `**` 包裹）。",
+      "proof": {
+        "declared": 7,
+        "actual": 7,
+        "mutated_declared": 8,
+        "detects_mutation": true,
+        "structure_mutation": "删 REQ-067 行 → actual 6，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "单需求支撑的 (\\d+) 个特性",
+      "label": "§4.4 单需求支撑特性数",
+      "extractor": "len(re.findall(r'^\\|\\s*L1-\\d\\s*\\|', t.split('### 4.4 单需求支撑的')[1].split('**两条结构性结论**')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§4.4 脆弱点清单行数（首列形如 `L1-1`）。§4.2 的密度表也在用 `| L1-n |` 行首，但不在切片内。",
+      "proof": {
+        "declared": 24,
+        "actual": 24,
+        "mutated_declared": 25,
+        "detects_mutation": true,
+        "structure_mutation": "删「L1-9 遗忘衰减检测」行 → actual 23，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "无流程支撑明细（(\\d+) 条",
+      "label": "§5.4 无流程支撑明细行数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.4 无流程支撑明细')[1].split('### 5.5')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　与「流程与用例两侧皆无的需求数」是同一事实的两次独立提取：一次数主矩阵、一次数逐条理由登记表。两者一旦分叉，至少一条会红——这正是 5.7 自述「核对须在文字定稿后重跑一次」的机器化。",
+      "proof": {
+        "declared": 47,
+        "actual": 47,
+        "mutated_declared": 46,
+        "detects_mutation": true,
+        "structure_mutation": "删 REQ-084 明细行 → actual 46，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "(\\d+) 个 L1 层对象",
+      "label": "§5.5 L1 层判定行数",
+      "extractor": "len(re.findall(r'^\\|\\s*[^\\s\\-|][^|\\n]*\\|', t.split('### 5.5 流程侧检查')[1].split('**L2 层步骤逐条判定**')[0].split('| 判定 |')[-1], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§5.5 的 L1 判定表：按行首 `|` 计数，扣掉分隔行与表头（表头含「承接需求」）。覆盖 8 步 + 2 决策框 + 5 交接 + 1 失联事件 + 3 终止状态 + 1 B0 支路。该分解式与逐行数是同一条声明的两面。",
+      "proof": {
+        "declared": 20,
+        "actual": 20,
+        "mutated_declared": 21,
+        "detects_mutation": true,
+        "structure_mutation": "删「1.5-B0 仅播放（0 轮）」行 → actual 19，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "个 L1 层对象 \\+ (\\d+) 个 L2 步骤",
+      "label": "§5.5 L2 步骤判定行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*{0,2}1\\.\\d', t.split('**L2 层步骤逐条判定**')[1].split('### 5.6')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　L2 判定表行首容许 `**` 包裹：`1.5.6 ◇本档预算内还有时间` 一行是加粗的，只认 `^\\|\\s*1\\.` 会少算一条（自审已实测）。",
+      "proof": {
+        "declared": 15,
+        "actual": 15,
+        "mutated_declared": 14,
+        "detects_mutation": true,
+        "structure_mutation": "删「1.5.3 ◇本轮已结束」行 → actual 14，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "「有流程、无需求」登记表（(\\d+) 处）",
+      "label": "§5.5 有流程无需求登记处数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*G\\d\\*\\*', t.split('**「有流程、无需求」登记表')[1].split('### 5.6')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　登记表行首形如 `| **G1** |`。",
+      "proof": {
+        "declared": 4,
+        "actual": 4,
+        "mutated_declared": 5,
+        "detects_mutation": true,
+        "structure_mutation": "删 G4 行 → actual 3，判 FAIL"
+      }
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim_regex": "部分承载的残差登记（(\\d+) 条",
+      "label": "§5.6 部分承载残差条数",
+      "extractor": "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.6 部分承载的残差登记')[1].split('### 5.7')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§5.6 残差登记行数，承诺是「标了（部分）的行，残差逐条列出，不留悬空」。",
+      "proof": {
+        "declared": 13,
+        "actual": 13,
+        "mutated_declared": 12,
+        "detects_mutation": true,
+        "structure_mutation": "删 REQ-080 行 → actual 12，判 FAIL"
+      }
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim_regex": "L1 端到端 (\\d+) 步",
+      "label": "L1 步骤表行数",
+      "extractor": "len(re.findall(r'^\\|\\s*1\\.\\d\\s*\\|', t.split('### 2.1 L1 步骤表')[1].split('### 2.2')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§2.1 步骤表行数。声明出现在 frontmatter description。卡内上限 20 与 7±2 区间随该行数变化。",
+      "proof": {
+        "declared": 8,
+        "actual": 8,
+        "mutated_declared": 9,
+        "detects_mutation": true,
+        "structure_mutation": "删 1.8 行 → actual 7，判 FAIL"
+      }
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim_regex": "只有 \\*\\*(\\d+) 处交接\\*\\*",
+      "label": "跨角色交接数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*X\\d\\*\\*', t.split('## 三、跨角色交接泳道契约')[1].split('### 3.1')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§三 交接契约表行首形如 `| **X1** |`。E5 自检另有一条「主图跨泳道箭头 5 条，与 X1–X5 一一对应」，主图里的箭头计数不可机械提取，故只绑契约表。",
+      "proof": {
+        "declared": 5,
+        "actual": 5,
+        "mutated_declared": 6,
+        "detects_mutation": true,
+        "structure_mutation": "删 X5 行 → actual 4，判 FAIL"
+      }
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim_regex": "L2 细化 (\\d+) 处",
+      "label": "L2 细化小节数",
+      "extractor": "len(re.findall(r'^### 4\\.\\d L2-[AB]', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§四 下的 L2 小节标题数（4.1 L2-A / 4.2 L2-B）。",
+      "proof": {
+        "declared": 2,
+        "actual": 2,
+        "mutated_declared": 3,
+        "detects_mutation": true,
+        "structure_mutation": "删 L2-B 小节标题 → actual 1，判 FAIL"
+      }
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim_regex": "(\\d+) 个决策点全部引用决策树",
+      "label": "L1 决策点数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*D\\d\\*\\*', t.split('### 2.2 两个判断')[1].split('## 三、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§2.2 判断表行首形如 `| **D1** |`。",
+      "proof": {
+        "declared": 2,
+        "actual": 2,
+        "mutated_declared": 3,
+        "detects_mutation": true,
+        "structure_mutation": "删 D2 行 → actual 1，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "(\\d+) 个用例",
+      "label": "用例条数",
+      "extractor": "len(re.findall(r'^## [一二三四五六七八]、UC-\\d\\d', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　一~八章的用例小节标题数。§0.4 清单表与各用例字段表（`| **ID** | UC-0n |`）同样得 8，互为冗余但只绑标题这一处。",
+      "proof": {
+        "declared": 8,
+        "actual": 8,
+        "mutated_declared": 9,
+        "detects_mutation": true,
+        "structure_mutation": "删「## 五、UC-05 …」标题 → actual 7，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "(\\d+) 条 AC 中",
+      "label": "§九 AC 覆盖矩阵行数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*AC\\d+\\*\\*', t.split('## 九、AC 覆盖矩阵')[1].split('## 十、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　§九 矩阵行首形如 `| **AC1** |`。声明为「11 条 AC 中，9 条…1 条…1 条」。",
+      "proof": {
+        "declared": 11,
+        "actual": 11,
+        "mutated_declared": 12,
+        "detects_mutation": true,
+        "structure_mutation": "删 AC11 行 → actual 10，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "(\\d+) 条由单个用例直接承载",
+      "label": "§九 单用例直接承载的 AC 数",
+      "extractor": "len(re.findall(r'^\\|\\s*\\*\\*AC\\d+\\*\\*.*\\|\\s*✅', t.split('## 九、AC 覆盖矩阵')[1].split('## 十、')[0], re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　判定列以 ✅ 开头的行数。AC8 是 ⚠️（跨用例承载）、AC11 是 ❌（不属本批范围），两者都不计入，与「9 + 1 + 1 = 11」自洽。",
+      "proof": {
+        "declared": 9,
+        "actual": 9,
+        "mutated_declared": 10,
+        "detects_mutation": true,
+        "structure_mutation": "把 AC8 的判定由 ⚠️ 改 ✅ → actual 10，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "\\*\\*(\\d+) 条替代路径（AC）",
+      "label": "替代路径条数",
+      "extractor": "len(re.findall(r'^\\s*-\\s\\*\\*AC\\d+\\*\\*｜', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　替代路径条目行首形如 `  - **AC1**｜调用条件：…`。全文另有 §十 引用「28 条 AC」的文字，但不带 `｜` 分隔符，不会重复计数。",
+      "proof": {
+        "declared": 28,
+        "actual": 28,
+        "mutated_declared": 29,
+        "detects_mutation": true,
+        "structure_mutation": "删 UC-01 的 AC1 条目 → actual 27，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "\\+ (\\d+) 条异常（EX）\\*\\*",
+      "label": "异常路径条数",
+      "extractor": "len(re.findall(r'^\\s*-\\s\\*\\*EX\\d+\\*\\*｜', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　异常路径条目行首形如 `  - **EX1**｜条件：…`。",
+      "proof": {
+        "declared": 22,
+        "actual": 22,
+        "mutated_declared": 23,
+        "detects_mutation": true,
+        "structure_mutation": "删 UC-03 的 EX3 条目 → actual 21，判 FAIL"
+      }
+    },
+    {
+      "file": "17-use-case.md",
+      "claim_regex": "(\\d+) 条以「转决策树 §X」收口",
+      "label": "转决策树收口的分支数",
+      "extractor": "len(re.findall(r'^\\s*-\\s\\*\\*(?:AC|EX)\\d+\\*\\*｜[^\\n]*决策树', t, re.M))",
+      "extractor_note": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。　E5/E6 自检声明「50 条分支中有 5 条以决策树收口」。实际措辞有三种（转入决策树 / 走决策树 / 括注决策树 §二），故按「该分支条目内出现决策树」计数，实测 5，与声明一致。",
+      "proof": {
+        "declared": 5,
+        "actual": 5,
+        "mutated_declared": 6,
+        "detects_mutation": true,
+        "structure_mutation": "把 UC-04 AC2 的「走决策树」改为自述分支 → actual 4，判 FAIL"
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "§2.1 注（line 101）与 §八（line 258）「删除列的 21 格中有 14 格为『无』」",
+      "reason": "声明数 ≠ 实测数，不予绑定。§2.1 删除列 21 格中：19 格取值为「无」或「无（…）」（其中 16 格恰为「无」，3 格为「无（旧版本不删）/无（走作废不销毁）/无（历史全保留）」），仅 2 格是操作编号（材料 2.6、消费锁 4.4）。无论按「无」类计（19）还是按恰为「无」计（16）都得不到 14。属真实缺陷，已入 open_questions。",
+      "declared": 14,
+      "actual": 19
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "§2.1 注（line 101）「复制列仅 3 格为『是』，全部是账本目录级复制（1.8）」",
+      "reason": "声明数 ≠ 实测数，不予绑定。复制列 21 格中只有 2 格是操作编号（材料 1.8、交互轮次 1.8），其余 19 格为「无」。属真实缺陷，已入 open_questions。",
+      "declared": 3,
+      "actual": 2
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "§八（line 266）「53 行以动词起头…另 3 行（6.1 / 6.2 / 6.3）」",
+      "reason": "「以动词起头」是语义判定，正则无法稳定复现；同一标准在不同提取器下必然分叉 → 会误报。53 + 3 = 56 与主矩阵行数自洽，但拆分方式不可机检，故只由「系统操作行数」绑定间接兜底。",
+      "declared": 53,
+      "actual": null
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "§八（line 265）「7 列 × 56 行 = 392 格」",
+      "reason": "392 是两个声明数的乘积，提取器须把 7 与 56 硬写进表达式才能返回 392，等于把被检值抄进被检逻辑，改一个声明数门禁不会动——是空断言。",
+      "declared": 392,
+      "actual": null
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "§一·2「结果：0 组合并」",
+      "reason": "「0 组」是缺失断言，正文没有可数的「合并组」结构；能数到的只有 §1.2 表里的 5 条「❌ 不合并」，语义相反。",
+      "declared": 0,
+      "actual": null
+    },
+    {
+      "file": "14-roles-permissions-matrix.md",
+      "claim": "「六角色」「四条泳道」「三条硬边界」「两处确认无」「六条口语指令」等中文数字声明",
+      "reason": "check_targeted_declarations 对捕获组直接 int()，中文数字会抛 ValueError 而非判 FAIL，等于把校验器打崩。同类声明一律不绑。",
+      "declared": null,
+      "actual": null
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim": "§5.7（二）（line 534）「本表引用的 DD 编号去重计数 … 29 个不同编号」及 line 535「29 / 29 全部存在」",
+      "reason": "声明数 ≠ 实测数，不予绑定。`grep -o 'DD[0-9]{3}'` 去重后实测 28 个：line 537 列出的 25 个全部存在，另 3 个未列入清单——DD101 与 DD803 来自同一段内的区间写法「DD101–DD803」，DD307 来自正文另一处。附注「本节文字本身又引入了 4 个编号」列了 5 个（DD205/DD304/DD607/DD703/DD704）且 5 个都已在清单内。该条与既有 13-display-action-response 的「共 N 个字段号」是同一失败形态，属真实缺陷，已入 open_questions。",
+      "declared": 29,
+      "actual": 28
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim": "§七 E4 行（line 593）「§5.5：18 + 16 个步骤逐条判定」",
+      "reason": "声明数 ≠ 实测数，不予绑定。§5.5 的 L1 判定表 20 行、L2 判定表 15 行，合计 35；18 + 16 = 34。且该式有两个数字，单捕获组无法绑定。同一文档 §七 另一行（line 586）写的是「20 个 L1 层对象 … + 15 个 L2 步骤」，与实测一致——即两行自相矛盾。已入 open_questions。",
+      "declared": 34,
+      "actual": 35
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim": "§3.2「G0 36 / G1 11 / G2 29 / G3 12 / G4 15」五条承接需求数",
+      "reason": "五条均可机检且实测全部相符，但每条都要一个独立绑定（单捕获组约束），合计 5 条与本批已绑定的 13 条叠加后，本文件占比失衡；且同一组数字在 §七 A2 行重复声明一次，绑一条即覆盖不到全部重复点。建议编排者若采纳，按「先绑 G4 15 条（唯一被正文结论引用的新目标）」取舍。",
+      "declared": 36,
+      "actual": 36
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim": "§5.7（二）「该字典当前有 66 个字段定义行（DD101–DD803）」与「29 / 29 全部存在」",
+      "reason": "被计数的对象在 03-data-dictionary.md，不在本文件；extractor 只能看到 t（15 的全文），无法跨文件取数。属跨文件一致性，留在人工核对范围。",
+      "declared": 66,
+      "actual": null
+    },
+    {
+      "file": "15-requirements-mapping-matrix.md",
+      "claim": "§四「7 条度量需求与 20 条供给/标注需求零用例」中的「7 条度量需求」",
+      "reason": "「度量需求」没有封闭定义，从 84 条里筛不出确定的子集；任何提取器都是在复述结论而非从正文导出该集合 → 必然误报。相邻的「20 条供给/标注需求」= §5.3 分类 ①+②（9+11）可导出，但其分项求和需要 int()，不在 _SAFE_EVAL 白名单内（白名单只有 re/len/set/sorted/max/min/abs/sum/round），改写会牺牲可读性；§5.4 明细行数绑定已覆盖同一数字。",
+      "declared": 7,
+      "actual": null
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim": "§4.1「9 步，未超 L2 的 10 步上限」与 §4.2「8 步。」",
+      "reason": "计数口径是「含未编号的 ◇ 判断在内的全部步骤」：§4.1 的 9 = 6 个编号步（1.5.1–1.5.6）+ 3 个未编号 ◇；§4.2 的 8 = 8 个编号步。但两条的编号规则不同——§4.2 里 1.8.4 / 1.8.5 不在行首（`───► 1.8.4 …`），行首锚定只得 6，不锚定得 8；§4.1 不锚定得 10（声明 9）。同一份文件两套规则，任一提取器都会误报。",
+      "declared": 9,
+      "actual": null
+    },
+    {
+      "file": "16-process-flow.md",
+      "claim": "§零「把 4 条泳道撑到 6 条」、§7.1 E2「四条泳道」、frontmatter「四条角色泳道」",
+      "reason": "中文数字，int() 会抛异常；泳道本体在 ASCII 图里（框线字符），计数对空格宽度敏感，不值得为它写提取器。",
+      "declared": 4,
+      "actual": null
+    },
+    {
+      "file": "17-use-case.md",
+      "claim": "§十 E4「8 条路径步数 6–8，全部落在 5–9 内」",
+      "reason": "「8 条」由用例条数绑定覆盖；「6–8」是 8 个用例主路径步数的 min/max，无法用单条提取器表达。逐用例步数（7/8/7/7/7/6/7/7）与 §0.4 清单表的「路径步数」列已人工逐格核对一致，但两处数值的自动对表要写成「按 UC 抽取再比大小」的复合表达式，超出单表达式可维护范围。",
+      "declared": 8,
+      "actual": null
+    },
+    {
+      "file": "17-use-case.md",
+      "claim": "§10.1 E5「共 50 条分支」",
+      "reason": "50 = 28 + 22，已由两条分支计数绑定覆盖；再绑总数是同义重复。",
+      "declared": 50,
+      "actual": null
+    }
+  ],
+  "extractor_constraint": "【实现约束】expr 必须是 comprehension-free 的 len(re.findall(...)) / len(set(re.findall(...)))：本机 Python 3.9.6 下推导式的**条件与体内**按 global 解析，看不到 _run_extractor 传进来的 locals {re,len,set,…,t}；写成 len([x for x in t.split(...) if re.match(...)]) 会 NameError → CNT007 永久 FAIL。只有推导式的可迭代部分在 eval 外层求值，才可引用 t —— 但本提案一律不用推导式。"
+}

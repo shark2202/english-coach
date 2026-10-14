@@ -470,6 +470,72 @@ TARGETED: list[tuple[str, str, str, str]] = [
      "len(set(re.findall(r'ELMT_[0-9]{4}', t)))", "去重后的 ELMT 元素表数"),
     ("13-display-action-response.md", r"共 (\d+) 个字段号",
      "len(set(re.findall(r'DD[0-9]{3}', t)))", "去重后的 DD 引用数"),
+# ── 来自 docs/swarm/contracts/proposals/batch-C-14-to-17.json（域 agent 逐条自证过反证，
+#    编排者独立复算 32/32 一致）。新增绑定必须同样附反证并复算，不得手写。 ──
+    ('14-roles-permissions-matrix.md', '(\\d+) 项系统操作',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '系统操作行数'),
+    ('14-roles-permissions-matrix.md', '(\\d+) 行全否',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|[^|]*\\|(?:\\s*否\\s*\\|){7}', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '主矩阵全否行数'),
+    ('14-roles-permissions-matrix.md', '\\| 学习者 \\| 1（人类） \\|[^|]*\\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){1}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '学习者权限行数'),
+    ('14-roles-permissions-matrix.md', '\\| 教练官 \\| 1（常驻，按唤起建会话） \\| 教练官提示词 \\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){2}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '教练官权限行数'),
+    ('14-roles-permissions-matrix.md', '\\| 选材官 \\| 按补切任务临时实例化 \\| 选材官提示词 \\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){3}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '选材官权限行数'),
+    ('14-roles-permissions-matrix.md', '\\| 陪练官 \\| 按补切任务临时实例化 \\| 陪练官提示词 \\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){4}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '陪练官权限行数'),
+    ('14-roles-permissions-matrix.md', '\\| 判读官 \\| 每轮 fresh 实例（不可复用） \\| 判读官提示词 \\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){5}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '判读官权限行数'),
+    ('14-roles-permissions-matrix.md', '\\| 记忆官 \\| 1（确定性本地代码，无提示词） \\| — \\|[^|]*\\| (\\d+) \\|',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){6}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '记忆官权限行数'),
+    ('14-roles-permissions-matrix.md', '派生列「教练官·兼帽」的计数为 \\*\\*(\\d+)\\*\\*',
+     "len(re.findall(r'^\\|\\s*\\d\\.\\d+\\s*\\|(?:[^|]*\\|){7}\\s*是\\s*\\|', t.split('## 三、角色权限主矩阵')[1].split('## 四、')[0], re.M))", '兼帽派生列权限数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) 条需求',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", 'RMM 需求条数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) 个 L2',
+     "len(set(re.findall(r'L1-\\d+\\s+[^·|\\n]+·\\s*([^|/\\n]+?)\\s*(?=\\s*\\||\\s*/|\\s*$)', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M)))", 'RMM 覆盖的 L2 特性数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) / 84 有流程步骤',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}(?!\\s*❌ 无)[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '有流程步骤的需求数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) 条无流程步骤',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '无流程步骤的需求数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) / 84 有用例承接',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){7}(?!\\s*(?:❌ 无|—))[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '有用例承接的需求数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) 条两者皆无',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|(?:[^|]*\\|){2}(?:\\s*❌ 无\\s*|\\s*—\\s*)\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '流程与用例两侧皆无的需求数'),
+    ('15-requirements-mapping-matrix.md', '\\*\\*有用例、无流程步骤\\*\\* \\| \\*\\*(\\d+) 条\\*\\*',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.2 需求侧缺口 A')[1].split('### 5.3')[0], re.M))", '§5.2 有用例无流程步骤的需求条数'),
+    ('15-requirements-mapping-matrix.md', '单需求支撑的 (\\d+) 个特性',
+     "len(re.findall(r'^\\|\\s*L1-\\d\\s*\\|', t.split('### 4.4 单需求支撑的')[1].split('**两条结构性结论**')[0], re.M))", '§4.4 单需求支撑特性数'),
+    ('15-requirements-mapping-matrix.md', '无流程支撑明细（(\\d+) 条',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.4 无流程支撑明细')[1].split('### 5.5')[0], re.M))", '§5.4 无流程支撑明细行数'),
+    ('15-requirements-mapping-matrix.md', '(\\d+) 个 L1 层对象',
+     "len(re.findall(r'^\\|\\s*[^\\s\\-|][^|\\n]*\\|', t.split('### 5.5 流程侧检查')[1].split('**L2 层步骤逐条判定**')[0].split('| 判定 |')[-1], re.M))", '§5.5 L1 层判定行数'),
+    ('15-requirements-mapping-matrix.md', '个 L1 层对象 \\+ (\\d+) 个 L2 步骤',
+     "len(re.findall(r'^\\|\\s*\\*{0,2}1\\.\\d', t.split('**L2 层步骤逐条判定**')[1].split('### 5.6')[0], re.M))", '§5.5 L2 步骤判定行数'),
+    ('15-requirements-mapping-matrix.md', '「有流程、无需求」登记表（(\\d+) 处）',
+     "len(re.findall(r'^\\|\\s*\\*\\*G\\d\\*\\*', t.split('**「有流程、无需求」登记表')[1].split('### 5.6')[0], re.M))", '§5.5 有流程无需求登记处数'),
+    ('15-requirements-mapping-matrix.md', '部分承载的残差登记（(\\d+) 条',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}', t.split('### 5.6 部分承载的残差登记')[1].split('### 5.7')[0], re.M))", '§5.6 部分承载残差条数'),
+    ('16-process-flow.md', 'L1 端到端 (\\d+) 步',
+     "len(re.findall(r'^\\|\\s*1\\.\\d\\s*\\|', t.split('### 2.1 L1 步骤表')[1].split('### 2.2')[0], re.M))", 'L1 步骤表行数'),
+    ('16-process-flow.md', '只有 \\*\\*(\\d+) 处交接\\*\\*',
+     "len(re.findall(r'^\\|\\s*\\*\\*X\\d\\*\\*', t.split('## 三、跨角色交接泳道契约')[1].split('### 3.1')[0], re.M))", '跨角色交接数'),
+    ('16-process-flow.md', 'L2 细化 (\\d+) 处',
+     "len(re.findall(r'^### 4\\.\\d L2-[AB]', t, re.M))", 'L2 细化小节数'),
+    ('16-process-flow.md', '(\\d+) 个决策点全部引用决策树',
+     "len(re.findall(r'^\\|\\s*\\*\\*D\\d\\*\\*', t.split('### 2.2 两个判断')[1].split('## 三、')[0], re.M))", 'L1 决策点数'),
+    ('17-use-case.md', '(\\d+) 个用例',
+     "len(re.findall(r'^## [一二三四五六七八]、UC-\\d\\d', t, re.M))", '用例条数'),
+    ('17-use-case.md', '(\\d+) 条 AC 中',
+     "len(re.findall(r'^\\|\\s*\\*\\*AC\\d+\\*\\*', t.split('## 九、AC 覆盖矩阵')[1].split('## 十、')[0], re.M))", '§九 AC 覆盖矩阵行数'),
+    ('17-use-case.md', '(\\d+) 条由单个用例直接承载',
+     "len(re.findall(r'^\\|\\s*\\*\\*AC\\d+\\*\\*.*\\|\\s*✅', t.split('## 九、AC 覆盖矩阵')[1].split('## 十、')[0], re.M))", '§九 单用例直接承载的 AC 数'),
+    ('17-use-case.md', '\\*\\*(\\d+) 条替代路径（AC）',
+     "len(re.findall(r'^\\s*-\\s\\*\\*AC\\d+\\*\\*｜', t, re.M))", '替代路径条数'),
+    ('17-use-case.md', '\\+ (\\d+) 条异常（EX）\\*\\*',
+     "len(re.findall(r'^\\s*-\\s\\*\\*EX\\d+\\*\\*｜', t, re.M))", '异常路径条数'),
+    ('17-use-case.md', '(\\d+) 条以「转决策树 §X」收口',
+     "len(re.findall(r'^\\s*-\\s\\*\\*(?:AC|EX)\\d+\\*\\*｜[^\\n]*决策树', t, re.M))", '转决策树收口的分支数'),
 ]
 
 
@@ -487,10 +553,18 @@ _SAFE_EVAL = {"re": re, "len": len, "set": set, "sorted": sorted,
 
 
 def _run_extractor(expr: str, text: str):
-    """在受限命名空间里求值提取器表达式。"""
+    """在受限命名空间里求值提取器表达式。
+
+    ⚠️ 必须把命名空间作为 **globals** 传入，不能拆成 (globals, locals)：
+    Python 3.9 下列表推导式的**条件与体内**按 global 解析，若 `re`/`len`/`t`
+    只在 locals 里，推导式会 NameError → CNT007 永久 FAIL。
+    域 agent 因踩到这一点，把 32 条提取器全部写成 comprehension-free 形式；
+    修正后推导式可用，但保留防御性断言。
+    """
     if "import" in expr or "__" in expr:
         raise ValueError(f"提取器表达式含不允许的构造：{expr[:40]}")
-    return eval(expr, {"__builtins__": {}}, {**_SAFE_EVAL, "t": text})  # noqa: S307
+    ns = {**_SAFE_EVAL, "t": text, "__builtins__": {}}
+    return eval(expr, ns)  # noqa: S307 — 单一 globals，推导式条件可见
 
 
 def check_targeted_declarations() -> None:
@@ -498,7 +572,9 @@ def check_targeted_declarations() -> None:
     for fname, pat, expr, label in TARGETED:
         p = REQ_DIR / fname
         if not p.exists():
-            warn(fname, "CNT006", "文件不存在，定点声明绑定无法执行")
+            # 前置条件缺失用 CNT0xx 族，与「声明与实测不符」的 CNT006 区分开——
+            # 否则绑定表自检按 CNT006 判定活性时，会被这条前置告警冒充成「活的」
+            warn(fname, "CNT008", "文件不存在，定点声明绑定无法执行")
             continue
         text = p.read_text(encoding="utf-8")
         m = re.search(pat, text)

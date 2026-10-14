@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -520,6 +521,46 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
                     lambda: vd.check_dd_references(set()))
     finally:
         vd.FIX_LEDGER, vd.DD_DICT = saved_led, saved_dd
+
+    print("\n— CNT006 绑定表活性自检（数据驱动） —")
+    # 为 35 条绑定各手写一条负例会昂贵且必然漂移。改为遍历绑定表本身：
+    # 把每条声明的数字改错，门禁必须判 CNT006。这等价于域 agent 提案时做的
+    # 反证，但被永久化——**绑定表会长大，活性检查必须跟着长大**。
+    REAL_REQ = ROOT / "docs" / "requirements"
+    mut_dir = TMP / "mut-req"
+    mut_dir.mkdir(exist_ok=True)
+    live, dead, unchecked = 0, [], []
+    for fname, pat, expr, label in vd.TARGETED:
+        src = REAL_REQ / fname
+        if not src.exists():
+            unchecked.append(f"{fname}（{label}）")
+            continue
+        t = src.read_text(encoding="utf-8")
+        m = re.search(pat, t)
+        if not m:
+            dead.append(f"{fname}「{label}」：正则抓不到声明")
+            continue
+        wrong = str(int(m.group(1)) + 7)
+        (mut_dir / fname).write_text(
+            t.replace(m.group(0), m.group(0).replace(m.group(1), wrong, 1), 1), encoding="utf-8")
+        saved_req = vd.REQ_DIR
+        f0 = len(vd.FAIL)
+        try:
+            vd.REQ_DIR = mut_dir
+            vd.check_targeted_declarations()
+        finally:
+            vd.REQ_DIR = saved_req
+        if any("CNT006" in x for x in vd.FAIL[f0:]):
+            live += 1
+        else:
+            dead.append(f"{fname}「{label}」：声明改成 {wrong} 后门禁未判 CNT006")
+    if dead:
+        for x in dead:
+            BROKEN.append(f"绑定表活性：{x}")
+    else:
+        PASSED.append(f"绑定表活性：{live}/{len(vd.TARGETED)} 条绑定改错声明后均会判 CNT006")
+    if unchecked:
+        print(f"  ⚠ {len(unchecked)} 条绑定未做活性检查（沙箱内无真实文档）：{unchecked[:3]}")
 
     # ── 汇总 ──
     print("\n" + "=" * 62)
