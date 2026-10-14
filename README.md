@@ -8,7 +8,7 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 
 设计阶段（未实现）。**需求可视化分析进行中**（RML 22 模型，完成 5/9 批次）——目标域已重锚为「哲学 + 管理」专业英语阅读，核心痛点为「英汉不可一一对应导致的翻译损耗」。
 
-**壳层选型已完成实测复核**（2026-10-14）：LynxJS 裁决保留，判据换挂；[poc/](poc/README.md) 为可复现验证工程。
+**壳层选型已完成实测复核**（2026-10-14）：选型方向保留，但改动建议**待 goal-keeper 裁决**；[poc/](poc/README.md) 为可复现验证工程。
 
 **基础设计文档**：
 
@@ -17,8 +17,8 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 - [docs/org-design.md](docs/org-design.md) —— 教练组织设计（english-coach-bureau 骨架 v0.1，2026-10-13）
 - [docs/app-design.md](docs/app-design.md) —— App 设计（跨平台运行时载体 **v0.3**，2026-10-14：双模运行——纯单机基线 + 可选同步 + 无缝切换；选型裁决——优先 LynxJS（Vue 版），Ubuntu 延后或取消，Flutter 降为回退路径）
 - [docs/tech-eval-lynx-20261014.md](docs/tech-eval-lynx-20261014.md) —— Lynx（Vue 版）选型评估（2026-10-14）：四端可行但 Linux 断角 + Vue×桌面双早期 + 宿主自建成本。**原判「Flutter 主选」已被 v0.3 goal-keeper 裁决推翻**，三项顾虑转为已接受风险，本文保留为历史风险登记（风险高估部分已被下条实测修正）
-- [docs/tech-recheck-lynx-20261014.md](docs/tech-recheck-lynx-20261014.md) —— **Lynx 选型复核（实测级，Phase 1 开工前必读）**：补齐 tech-eval 的「未实测」缺口。结论=裁决保留但判据换挂——「快速预览」经实测成立（Web 预览重建 0.15s、JS/模板热更新、可被 agent 无头验证），且桌面风险被实测下调（CSS 97%、键盘事件完整、Lynxtron 0.0.28 迭代中）；但①该理由非瓶颈轴（难点在 coach_core 与 L4 原生集成，预览回路都验不到）②纯 CSS 改动不热更新需手动刷新。另纠正：`event.key` 限制仅限 iOS/Android 原生，桌面键盘优先无风险
-- [poc/](poc/README.md) —— **Lynx(Vue) 壳层 POC**：可复现工程，复刻本产品真实 UI 约束（三栏 / 衬线阅读 / 34em 行宽 / 会话流），三条回路随时可重新测量；[实测记录](poc/evidence/measurements.md)
+- [docs/tech-recheck-lynx-20261014.md](docs/tech-recheck-lynx-20261014.md) —— **Lynx 选型复核 v2（实测级 + 三路独立判别器复核）**：选型方向保留，但**本文不含任何已生效决策**——判据换挂、AC 执行方式调整等全部列 §六 返回清单上交 goal-keeper。核心结论：Web 预览回路实测优秀、桌面渲染能力疑虑确属高估；然①「快速预览」在 app-design 中**零命中、从未入册**②A11 只可判「显著下调但未消解」③11 条 AC 不得压缩。含完整修订记录与作废项
+- [poc/](poc/README.md) —— **Lynx(Vue) 壳层 POC**：可复现工程，复刻本产品真实 UI 约束（三栏 / 衬线阅读 / 34em 行宽 / 会话流），三条回路随时可重新测量；[实测记录与复核对照](poc/evidence/measurements.md)
 
 **需求侧文档**（RML 可视化需求分析，2026-10-14 起，目标域已重锚为「哲学 + 管理」专业英语阅读）：
 
