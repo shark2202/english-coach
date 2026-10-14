@@ -9,6 +9,9 @@
 # Node（工具链/将来 Web 壳）
 node_modules/
 
+# Lynx POC 构建产物
+poc/shell/dist/
+
 # Flutter / Dart（Phase 1 起）
 .dart_tool/
 build/

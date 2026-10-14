@@ -1,6 +1,6 @@
 # POC——Lynx(Vue) 壳层回路探针
 
-为 [Lynx 选型复核](../../docs/tech-recheck-lynx-20261014.md) 提供的**可复现**最小工程。
+为 [Lynx 选型复核](../docs/tech-recheck-lynx-20261014.md) 提供的**可复现**最小工程。
 用途只有一个：让「快速预览 / 调试」这条裁决理由随时可被重新测量，而不是停留在口头主张。
 
 ## 跑起来
@@ -23,7 +23,7 @@ npm run dev
 
 ## 这个页面在测什么
 
-`src/App.vue` 不是玩具，它是本产品真实 UI 约束的缩影（对应 [app-design §五](../../docs/app-design.md)）：
+`src/App.vue` 不是玩具，它是本产品真实 UI 约束的缩影（对应 [app-design §五](../docs/app-design.md)）：
 
 - **macOS 三栏**——左语境域 / 中阅读区 / 右账本
 - **衬线阅读区**——长文专业英语段落（哲学语域），带 `max-width: 34em` 行宽约束
@@ -35,7 +35,7 @@ npm run dev
 
 ## 测量结果
 
-见 [evidence/measurements.md](../evidence/measurements.md)（含截图证据与未测项清单）。
+见 [evidence/measurements.md](evidence/measurements.md)（含截图证据与未测项清单）。
 
 ## 复验时注意
 
