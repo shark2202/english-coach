@@ -2,7 +2,7 @@
 type: Requirements Model
 model: Ecosystem Map（生态系统图）
 title: "english-coach 生态图——系统全景与集成边界 v0.1"
-description: "RML 22 模型之生态图（Visual Models for Software Requirements 第 12 章）。5 组系统边界：核心系统、外部 AI 服务、平台能力、同步通道、开发/运维侧。共 13 个外部系统。每组标注数据流向、方向、以及「集成失效时的降级后果」——单模运行时该栏是判断同步/AI 是否真正可选的依据。"
+description: "RML 22 模型之生态图（Visual Models for Software Requirements 第 12 章）。5 组系统边界：核心系统、外部 AI 服务、平台能力、同步通道、开发/运维侧。共 13 个外部系统（**口径**：组 2 三条 + 组 3 七条 + 组 4 三条；**组 5 开发/运维侧的四条不计入**——它是第五组边界，但属本项目的自建/自用工具，不是外部集成。§二 四张表的数据行合计 **17** 条，两者相差的 4 条即组 5）。每组标注数据流向、方向、以及「集成失效时的降级后果」——单模运行时该栏是判断同步/AI 是否真正可选的依据。"
 model_source: "visual-models-requirements-skill / references/capabilities/ecosystem-map.md（见技能目录）"
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
@@ -70,6 +70,8 @@ batch: "batch-01-to-05-orchestrator"
 ---
 
 ## 二、逐系统清单与失效降级
+
+> **口径**（否则本节会被数成 17）：「外部系统」指组 2 / 组 3 / 组 4 的表内条目，共 13 条；组 5 开发/运维侧的 4 条单列，是因为它是边界而非外部集成——组 5 失效不影响用户使用，只影响可维护性。
 
 > **「集成失效后果」一栏是本图的核心**。单模运行时（app-design §二「同步失效不降级单机功能一分」），只有当每个集成的失效后果都可被写成一句「单机仍能做什么」，双模原则才算真正成立，而非口号。
 
