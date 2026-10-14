@@ -535,12 +535,18 @@ TARGETED: list[tuple[str, str, str, str]] = [
      "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", 'RMM 需求条数'),
     ('15-requirements-mapping-matrix.md', '(\\d+) 个 L2',
      "len(set(re.findall(r'L1-\\d+\\s+[^·|\\n]+·\\s*([^|/\\n]+?)\\s*(?=\\s*\\||\\s*/|\\s*$)', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M)))", 'RMM 覆盖的 L2 特性数'),
-    ('15-requirements-mapping-matrix.md', '(\\d+) / 84 有流程步骤',
+    ('15-requirements-mapping-matrix.md', '(\\d+) / \\d+ 有流程步骤',
      "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}(?!\\s*❌ 无)[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '有流程步骤的需求数'),
     ('15-requirements-mapping-matrix.md', '(\\d+) 条无流程步骤',
      "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '无流程步骤的需求数'),
-    ('15-requirements-mapping-matrix.md', '(\\d+) / 84 有用例承接',
+    ('15-requirements-mapping-matrix.md', '(\\d+) / \\d+ 有用例承接',
      "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){7}(?!\\s*(?:❌ 无|—))[^|]*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '有用例承接的需求数'),
+    # ── M11：上面两条曾把分母写死成「/ 84」，需求一增即双双退化为 CNT000
+    #    「未核查」——门禁对这两个数字直接失去覆盖。改为分母无关，另加本条
+    #    独立守住总数：分母由「N 条需求」这条绑定核对，与分子绑定解耦。 ──
+    ('15-requirements-mapping-matrix.md', '声明：(\\d+) 行 = \\d+ 条需求',
+     "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))",
+     '主矩阵 REQ 行数（= 需求总数，上面两条的分母靠它守住）'),
     ('15-requirements-mapping-matrix.md', '(\\d+) 条两者皆无',
      "len(re.findall(r'^\\|\\s*REQ-\\d{3}\\s*\\|(?:[^|]*\\|){4}\\s*❌ 无\\s*\\|(?:[^|]*\\|){2}(?:\\s*❌ 无\\s*|\\s*—\\s*)\\|', t.split('## 二、主矩阵')[1].split('## 三、')[0], re.M))", '流程与用例两侧皆无的需求数'),
     ('15-requirements-mapping-matrix.md', '\\*\\*有用例、无流程步骤\\*\\* \\| \\*\\*(\\d+) 条\\*\\*',
