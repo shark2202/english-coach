@@ -131,11 +131,11 @@ python3 tools/mutation_test_verify_docs.py
 | `docs/swarm/ORG-SPEC.md` | 蜂群组织规格 v1.0 |
 | `docs/swarm/RETRO-01.md` | 首轮复盘 v0.2（含 L2 首轮判定 FAIL 与 R1 撤回记录） |
 | `docs/swarm/contracts/` | 批次契约（schema `swarm-batch-contract/v1`）+ `content-manifest.json`（冻结指纹）+ `applied-fixes.json`（修正台账） |
-| `tools/verify_docs.py` | L1 校验器（14 类检查） |
-| `tools/selftest_verify_docs.py` | 校验器自审（43 项负向用例） |
-| `tools/mutation_test_verify_docs.py` | 变异测试（10 处判定逻辑逐处破坏，证明自审非空断言） |
+| `tools/verify_docs.py` | L1 校验器（`check_*` 检查项 + 判定码；**两项数量均随校验器演进而变，以实测为准，不写死**） |
+| `tools/selftest_verify_docs.py` | 校验器自审（负向用例集；**用例数随增补而变，以实测为准，不写死**） |
+| `tools/mutation_test_verify_docs.py` | 变异测试（逐处破坏判定逻辑，证明自审非空断言；**变异点数随增补而变，以实测为准**） |
+| `tools/manifest.lock` | 清单锁：清单的 sha256。改清单必失配（`MAN003`），堵住「改清单洗白任意文件」 |
 | `docs/evidence/` | 外部证据核验 |
-| `tools/verify_docs.py` | L1 校验器 |
 
 ---
 

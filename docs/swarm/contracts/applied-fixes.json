@@ -269,7 +269,8 @@
       },
       "new_sha256": "cc7e223caeb0ec3a4a246a004b451d53cfa2cbd0c1c7c93168e3fc18d859d9f2",
       "applied_by": "orchestrator",
-      "governance_note": "该文件在本轮之前不在内容指纹清单内——二轮 L2 实测指出 MAN001 的动机是 RETRO-01 的越权，而 RETRO-01 恰不在覆盖范围内。本条为补录：清单登记本轮改动**之前**的指纹，本条申报其后的新指纹，轨迹完整"
+      "governance_note": "本条曾写「14 份文档零覆盖」，被 R3-ORG 更正为 15 份（off-by-one）。保留原记录不删除",
+      "superseded_by": "R3-ORG"
     },
     {
       "id": "G-02",
@@ -366,6 +367,103 @@
         "string": "tools/mutation_test_verify_docs.py"
       },
       "new_sha256": "ffcdf04aa256aebd1ae99e4e29bc1b8bfaf84af69a11b982e08d84f0aacf90dd",
+      "applied_by": "orchestrator"
+    },
+    {
+      "id": "R3-04",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/04-state-table.md",
+      "claim": "三轮 L2：§八 仍以现在时引用 A10「同步状态显式三态」，而 app-design.md:205 本轮已改四态——镜像面二次漏改。改为「当时是三态→论证当时即成立」+「现状已改为四态」，并把过期待办（建议同步更新 03 数据目录）标记为已完成",
+      "evidence": {
+        "type": "contains",
+        "string": "已由编排者改为四态"
+      },
+      "new_sha256": "cec97ae7fe8ef62245fa64c531b96ea30803ec929cba7d8f174ed4d5cfb9df1e",
+      "applied_by": "domain-agent-g",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "R3-05",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/05-state-diagram.md",
+      "claim": "三轮 L2：§同步失败 论证以现在时称 A10 写的是三态。改为「写本图时」的历史时态，保留原推理",
+      "evidence": {
+        "type": "contains",
+        "string": "**写本图时**"
+      },
+      "new_sha256": "a14148b6bf18157313ea98614ca9e1bdc1b4d1c7ed286a546f3313393ad5b265",
+      "applied_by": "domain-agent-g",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "R3-12",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/12-user-interface-flow.md",
+      "claim": "三轮 L2：§零「18−13=5 套双形态布局（S2/S3/S4/S9/S11）」与本文件挂账 7 自相矛盾——判别器与域 agent 各自独立复现：口径 A（两端均有呈现）=9、口径 B（两端均为独立框）=4，任何口径都推不出 5；且 S9 的 macOS 侧是「M7 内区域」被当独立框，同类的 S5/S6/S7/S8 全漏。改为只陈述差值并注明不构成清单",
+      "evidence": {
+        "type": "contains",
+        "string": "这只是差值，不构成双形态布局清单"
+      },
+      "new_sha256": "8912a484a3840adeded10a398ba9818bb791e581e5235052df3884c06078ba7c",
+      "applied_by": "domain-agent-g",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "R3-13",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/requirements/13-display-action-response.md",
+      "claim": "三轮 L2：§十八 声明「引用 DD101–DD706 共 30 个字段号」，去重实测仅 28 个（L1 三层全绿漏过）。本轮已由 CNT006 定点声明绑定覆盖同类回归",
+      "evidence": {
+        "type": "contains",
+        "string": "共 28 个字段号"
+      },
+      "new_sha256": "cbc008119a860576d8a64d2427c40296449a9815513183f06ac7134e4ccbd9af",
+      "applied_by": "domain-agent-g",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "R3-ORG",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "docs/swarm/ORG-SPEC.md",
+      "claim": "三轮 L2：§八「算术自洽性对 11/12/13 等 14 份文档零覆盖」off-by-one——check_declared_counts 只覆盖 01/02/03，共 18 份，故零覆盖为 15 份。写在一份专门记录 S4 纪律的治理文档里",
+      "evidence": {
+        "type": "contains",
+        "string": "等 15 份文档零覆盖"
+      },
+      "new_sha256": "09f22578dd277f1d8d00f01ab70773717271698c0634a46baad4814a850554df",
+      "applied_by": "domain-agent-g",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "R3-AG",
+      "kind": "l2_correction",
+      "source_batch": "batch-12-fact-fixes",
+      "target_file": "AGENTS.md",
+      "claim": "三轮 L2 修正批次期间由域 agent 与编排者共同修改：校验器条目改为不写死计数（实测值随演进而变，写死必然再次失准）、变异测试条目同步、删去重复行、补入 tools/manifest.lock",
+      "evidence": {
+        "type": "contains",
+        "string": "tools/manifest.lock"
+      },
+      "new_sha256": "b82a176e36b96cb4b8d6e33cd81a8752fced6d5960ef2ee32910742a7e9c00fc",
+      "applied_by": "orchestrator",
+      "verification": "编排者抽查改动后的实际文本；域 agent 报告称对 6 处指控均独立复算通过，且对判别器给出的「18 个判定码」给出反证（AST 实测 26），据此拒绝写死任何计数"
+    },
+    {
+      "id": "G-06",
+      "kind": "l2_correction",
+      "source_batch": "batch-01-to-05-orchestrator",
+      "target_file": "docs/swarm/RETRO-01.md",
+      "claim": "新增 §七 记录三轮 L2 结论：门禁能输出它从未做过的核查结论（else:ok() 根因）、MAN001 可被参照系洗白、变异测试崩溃冒充捕获；以及 §6.2 的 CNT010 推迟理由被推翻并已落地 CNT006 定点绑定",
+      "evidence": {
+        "type": "contains",
+        "string": "## 七、三轮 L2"
+      },
+      "new_sha256": "6f5a123708fa26fd6a58eaf12671d6681bab5f230a54342000efb76224207fc6",
       "applied_by": "orchestrator"
     }
   ]

@@ -120,64 +120,55 @@ def count_table_rows(text: str, pattern: str) -> int:
 
 
 def check_declared_counts(path: Path) -> None:
-    """文档 frontmatter 的 description 常写「N 个对象 / N 条关系」等，须与正文实测一致。"""
+    """文档 frontmatter 的 description 常写「N 个对象 / N 条关系」等，须与正文实测一致。
+
+    ⚠️ 三分支，不可退回两分支：找到声明且不一致→FAIL；找到声明且一致→ok；
+    **没找到声明→必须说「没核查」，绝不能落到 ok 分支**。
+    三轮 L2 实测：把 CNT003 的判定整行关闭后，本函数仍打印
+    「✓ 字段数 66 与声明一致」并让门禁报告全绿——门禁在输出它从未做过的核查结论。
+    """
     text = path.read_text(encoding="utf-8")
     fm = parse_frontmatter(text)
     desc = fm.get("description", "")
+
+    def compare(decl, actual, label, code, unit):
+        """decl 为 None 表示 description 里没有可核对的声明——本次未核查。"""
+        if decl is None:
+            warn(path.name, "CNT000",
+                 f"description 中未找到「{label}」声明，本次未做核查（实测值 {actual}）")
+        elif int(decl.group(1)) != actual:
+            fail(path.name, code, f"声明 {decl.group(1)} {unit}，正文实测 {actual}")
+        else:
+            ok(f"{path.name}: {label} {actual} 与声明一致")
 
     # 按文件名判定模型类型——frontmatter 的 model 值含中文与括号，按路径判定更稳
     stem = path.stem
 
     if stem.startswith("02-"):
-        rel_decl = re.search(r"(\d+)\s*条关系", desc)
         rel_actual = count_table_rows(text, r"^\|\s*[0-9]\.[0-9]\s*\|")
-        if rel_decl and int(rel_decl.group(1)) != rel_actual:
-            fail(path.name, "CNT001",
-                 f"声明 {rel_decl.group(1)} 条关系，正文实测 {rel_actual} 条")
-        else:
-            ok(f"{path.name}: 关系数 {rel_actual} 与声明一致")
+        compare(re.search(r"(\d+)\s*条关系", desc), rel_actual, "关系数", "CNT001", "条关系")
 
-        obj_decl = re.search(r"(\d+)\s*个业务数据对象", desc)
         objs = set()
         for m in re.finditer(r"^## [二三四五]、BDD-\d · .*?（(.+?)）", text, re.M):
             for name in m.group(1).split(" / "):
                 objs.add(name.strip())
-        if obj_decl and int(obj_decl.group(1)) != len(objs):
-            fail(path.name, "CNT002",
-                 f"声明 {obj_decl.group(1)} 个对象，各域标题实测 {len(objs)} 个")
-        else:
-            ok(f"{path.name}: 对象数 {len(objs)} 与声明一致")
+        compare(re.search(r"(\d+)\s*个业务数据对象", desc), len(objs),
+                "对象数", "CNT002", "个业务数据对象")
 
     if stem.startswith("03-"):
-        fd_decl = re.search(r"(\d+)\s*个字段", desc)
         fd_actual = count_table_rows(text, r"^\|\s*DD[0-9]{3}\s*\|")
-        if fd_decl and int(fd_decl.group(1)) != fd_actual:
-            fail(path.name, "CNT003",
-                 f"声明 {fd_decl.group(1)} 个字段，正文实测 {fd_actual} 个")
-        else:
-            ok(f"{path.name}: 字段数 {fd_actual} 与声明一致")
+        compare(re.search(r"(\d+)\s*个字段", desc), fd_actual, "字段数", "CNT003", "个字段")
 
     if stem.startswith("01-"):
-        l1_decl = re.search(r"(\d+)\s*个\s*L1", desc)
-        l2_decl = re.search(r"(\d+)\s*个\s*L2", desc)
         seg = text.split("## 二、")[1].split("## 三、")[0] if "## 二、" in text else ""
         l1_actual = len(re.findall(r"L1-\d+ ", seg))
         # L2 在 ASCII 树里按 ├/└ 计数，须扣除 L0 盒子的 └
         tree = re.search(r"```\n(.*?)\n```", text, re.S)
         l2_actual = 0
         if tree:
-            glyphs = len(re.findall(r"[├└]", tree.group(1)))
-            l2_actual = glyphs - 1  # 扣 L0 盒子的 └
-        if l1_decl and int(l1_decl.group(1)) != l1_actual:
-            fail(path.name, "CNT004",
-                 f"声明 {l1_decl.group(1)} 个 L1，§二 实测 {l1_actual} 个")
-        else:
-            ok(f"{path.name}: L1 数 {l1_actual} 与声明一致")
-        if l2_decl and int(l2_decl.group(1)) != l2_actual:
-            fail(path.name, "CNT005",
-                 f"声明 {l2_decl.group(1)} 个 L2，树形图实测 {l2_actual} 个")
-        else:
-            ok(f"{path.name}: L2 数 {l2_actual} 与声明一致")
+            l2_actual = len(re.findall(r"[├└]", tree.group(1))) - 1  # 扣 L0 盒子的 └
+        compare(re.search(r"(\d+)\s*个\s*L1", desc), l1_actual, "L1 数", "CNT004", "个 L1")
+        compare(re.search(r"(\d+)\s*个\s*L2", desc), l2_actual, "L2 数", "CNT005", "个 L2")
 
 
 # ── 检查 5：表格无空单元格（必填区） ──────────────────────────────────
@@ -343,10 +334,31 @@ def check_applied_fixes() -> None:
 import hashlib
 
 MANIFEST = ROOT / "docs" / "swarm" / "contracts" / "content-manifest.json"
+MANIFEST_LOCK = ROOT / "tools" / "manifest.lock"
 
 
 def sha256_of(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def check_manifest_lock() -> bool:
+    """清单是全部产物的参照系，它自己却不能被指纹覆盖——否则自指死循环。
+    改用锁文件消除自指：清单的 sha256 写在 tools/manifest.lock，
+    单独改清单会立刻失配。想洗白任意文件就必须同时改两个文件，
+    这把它从「一个文件的静默篡改」变成「两个文件的可见改动」（git diff 看得见）。
+    """
+    if not MANIFEST_LOCK.exists():
+        fail("tools/manifest.lock", "MAN003",
+             "锁文件不存在——清单可被改写以洗白任意文件，本检查失效")
+        return False
+    locked = MANIFEST_LOCK.read_text(encoding="utf-8").split()[0].strip()
+    cur = sha256_of(MANIFEST)
+    if locked != cur:
+        fail("docs/swarm/contracts/content-manifest.json", "MAN003",
+             f"清单已变更但锁文件未同步（lock={locked[:12]}… 实际={cur[:12]}…）")
+        return False
+    ok(f"manifest.lock 与清单指纹一致（{cur[:12]}…）")
+    return True
 
 
 def declared_hashes() -> dict[str, set[str]]:
@@ -369,6 +381,8 @@ def check_content_manifest() -> None:
     if not MANIFEST.exists():
         warn(MANIFEST.name, "MAN000", "内容指纹清单不存在，内容级越权无法拦截")
         return
+    if not check_manifest_lock():
+        return  # 参照系本身被改过，继续核对内容没有意义
     try:
         data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
@@ -427,6 +441,63 @@ def check_dd_references(dd_defs: set[str]) -> None:
         ok(f"全部需求文档的 DD 引用均在数据字典中有定义（{len(dd_defs)} 个编号）")
 
 
+# ── 检查 13：定点声明绑定（CNT006） ──────────────────────────────────
+# 为什么不做通用版：三轮 L2 的判断——通用的「N 条 ↔ 正文可数结构」正则必然误报，
+# 而误报率高的门禁会被整体忽略（告警疲劳比漏报更危险）。
+# 实证可行的替代是**定点绑定**：只绑定已造成过真实缺陷的少数声明，
+# 每个提取器单独可回归、误报率单独计量。判别器用 3 条提取器当场查出了
+# 「13 声明共 30 个字段号、实测 28」这条 L1 三层全绿漏过的缺陷。
+# 扩展方式：新增一行绑定，并**同时为它补一条负例进自审套件**。
+
+def _comp_rows(t: str) -> int:
+    """11 的 §9.1 + §9.2 补偿条目行数（行首形如 `| 1.1 校验账本可用性 |`）。"""
+    if "### 9.1" not in t:
+        return 0
+    sec = t.split("### 9.1", 1)[1]
+    return len(re.findall(r"^\|\s*1\.[0-9x]", sec, re.M))
+
+
+def _uniq(t: str, pat: str) -> int:
+    return len(set(re.findall(pat, t)))
+
+
+def _elmt(t: str) -> int:
+    return _uniq(t, r"ELMT_\d{4}")
+
+
+# (文件名, 声明正则（须含一个捕获组）, 提取器, 说明)
+TARGETED: list[tuple[str, str, object, str]] = [
+    ("11-system-flow.md", r"以 (\d+) 条补偿条目覆盖", _comp_rows,
+     "§9.1 + §9.2 补偿条目数（此处出过 32 / 40 / 31 三次错）"),
+    ("13-display-action-response.md", r"(\d+) 张元素表", _elmt,
+     "去重后的 ELMT 元素表数"),
+    ("13-display-action-response.md", r"共 (\d+) 个字段号",
+     lambda t: _uniq(t, r"DD\d{3}"), "去重后的 DD 引用数"),
+]
+
+
+def check_targeted_declarations() -> None:
+    checked = 0
+    for fname, pat, extractor, label in TARGETED:
+        p = REQ_DIR / fname
+        if not p.exists():
+            warn(fname, "CNT006", "文件不存在，定点声明绑定无法执行")
+            continue
+        text = p.read_text(encoding="utf-8")
+        m = re.search(pat, text)
+        if not m:
+            warn(fname, "CNT000", f"未找到「{label}」的声明，本次未做核查")
+            continue
+        declared_n = int(m.group(1))
+        actual_n = extractor(text)  # type: ignore[operator]
+        if declared_n != actual_n:
+            fail(fname, "CNT006", f"声明 {label} {declared_n}，正文实测 {actual_n}")
+        else:
+            checked += 1
+    if checked:
+        ok(f"定点声明绑定：{checked}/{len(TARGETED)} 条声明与正文实测一致")
+
+
 # ── 主流程 ────────────────────────────────────────────────────────────
 def main() -> int:
     if not REQ_DIR.exists():
@@ -452,6 +523,7 @@ def main() -> int:
     check_applied_fixes()
     check_content_manifest()
     check_dd_references(defined_dd_ids())
+    check_targeted_declarations()
 
     print(f"PASS {len(OK)}")
     for m in OK:

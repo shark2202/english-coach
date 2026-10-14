@@ -47,6 +47,18 @@ def expect_fail(name: str, code: str, fn) -> None:
         BROKEN.append(f"{name} → 期望拦截 {code}，实际 {'/'.join(got) or '放行'}")
 
 
+def expect_warn(name: str, code: str, fn) -> None:
+    """前置条件缺失类判定走 warn() 而非 fail()——它们报告「兜底失效」，
+    不是「产物有错」。误报它们等于把兜底告警降级成噪声。"""
+    f0, w0 = len(vd.FAIL), len(vd.WARN)
+    fn()
+    got = [m.split("]", 1)[0].lstrip("[") for m in vd.WARN[w0:]]
+    if code in got:
+        PASSED.append(f"{name} → 正确告警 {code}")
+    else:
+        BROKEN.append(f"{name} → 期望告警 {code}，实际 {'/'.join(got) or '静默'}")
+
+
 def expect_pass(name: str, fn) -> None:
     f0, w0 = len(vd.FAIL), len(vd.WARN)
     fn()
@@ -63,11 +75,27 @@ def doc(fname: str, fm: str, body: str = "正文\n") -> Path:
     return p
 
 
+def raw(fname: str, text: str) -> Path:
+    p = TMP / fname
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
 def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易读
     own = vd.load_ownership()
     if not own:
         print("✗ 契约归属加载失败，OWN 测试无从谈起")
         return 1
+
+    # 让自审彻底自足：vd.REQ_DIR 指向按契约造出的夹具目录，而不是仓库真实目录。
+    # 否则在变异测试的 /tmp 沙箱里该目录为空，多个用例会**空断言地**通过——
+    # 那是虚假安全感的一种典型形态（三轮 L2 指出过同类问题）。
+    FIX_REQ = TMP / "contract-req"
+    FIX_REQ.mkdir(exist_ok=True)
+    for name in own:
+        (FIX_REQ / name).write_text(
+            "---\ntype: T\ntitle: t\ndescription: d\nstatus: 草稿\n---\n\n夹具\n", encoding="utf-8")
+    vd.REQ_DIR = FIX_REQ
 
     print("— 引号归一化（经 OWN001 端到端触发，不做裸布尔断言） —")
     # 归属随契约变化（修正批次会接管文件），故从契约现读，不写死批次 id
@@ -113,10 +141,7 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     )
     expect_pass(
         "契约 owns 清单完整时不得误报",
-        lambda: vd.check_contract_covers_all(
-            {p.name: b for p, b in ((Path(f), own[Path(f).name])
-                                    for f in vd.REQ_DIR.glob("*.md"))}
-        ),
+        lambda: vd.check_contract_covers_all(own),
     )
 
     print("\n— FM001 frontmatter 必填 —")
@@ -254,18 +279,35 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     mtarget = doc("man-target.md", 'status: "草稿"', body="原始内容\n")
     man = TMP / "manifest.json"
     orig_man, orig_ledger, orig_root = vd.MANIFEST, vd.FIX_LEDGER, vd.ROOT
+    lock = TMP / "man.lock"
+    orig_lock = vd.MANIFEST_LOCK
     try:
         vd.MANIFEST = man
+        vd.MANIFEST_LOCK = lock          # 夹具清单必须配一把匹配的锁，否则先在 MAN003 上翻车
         vd.ROOT = TMP
+        orig_sha = vd.sha256_of(mtarget)
         man.write_text(json.dumps({
-            "files": [{"path": "man-target.md", "sha256": vd.sha256_of(mtarget)}]
+            "files": [{"path": "man-target.md", "sha256": orig_sha}]
         }, ensure_ascii=False), encoding="utf-8")
+        lock.write_text(vd.sha256_of(man) + "\n", encoding="utf-8")
         expect_pass("内容未变", vd.check_content_manifest)
 
         mtarget.write_text("---\nstatus: \"草稿\"\n---\n\n被人悄悄改掉\n", encoding="utf-8")
         expect_fail("内容改了但未申报", "MAN001", vd.check_content_manifest)
 
-        # 已申报的新指纹 → 合法
+        # 洗白路径：同时改夹具内容与清单里的指纹——锁文件必须仍能发现
+        man.write_text(json.dumps({
+            "files": [{"path": "man-target.md", "sha256": vd.sha256_of(mtarget)}]
+        }, ensure_ascii=False), encoding="utf-8")
+        expect_fail("改清单洗白 → MAN003 锁失配", "MAN003", vd.check_content_manifest)
+        lock.write_text(vd.sha256_of(man) + "\n", encoding="utf-8")
+
+        # 回到「清单与原内容匹配」的状态，再测申报通道
+        man.write_text(json.dumps({
+            "files": [{"path": "man-target.md", "sha256": orig_sha}]
+        }, ensure_ascii=False), encoding="utf-8")
+        lock.write_text(vd.sha256_of(man) + "\n", encoding="utf-8")
+
         vd.FIX_LEDGER = TMP / "declared.json"
         _write_ledger(vd.FIX_LEDGER, [{"id": "D1", "target_file": "man-target.md",
                                        "evidence": {"type": "contains", "string": "悄悄"},
@@ -279,7 +321,20 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     finally:
         vd.MANIFEST = orig_man
         vd.FIX_LEDGER = orig_ledger
+        vd.MANIFEST_LOCK = orig_lock
         vd.ROOT = orig_root
+
+    print("\n— MAN002 清单 JSON 非法（须先过锁校验才能走到解析） —")
+    man_bad = TMP / "man-bad.json"
+    bad_lock = TMP / "man-bad.lock"
+    orig_man2, orig_lock2 = vd.MANIFEST, vd.MANIFEST_LOCK
+    try:
+        man_bad.write_text("{ not json", encoding="utf-8")
+        bad_lock.write_text(vd.sha256_of(man_bad) + "\n", encoding="utf-8")
+        vd.MANIFEST, vd.MANIFEST_LOCK = man_bad, bad_lock
+        expect_fail("清单 JSON 非法 → MAN002", "MAN002", vd.check_content_manifest)
+    finally:
+        vd.MANIFEST, vd.MANIFEST_LOCK = orig_man2, orig_lock2
 
     print("\n— REF001 DD 引用有效性 —")
     dd_defs = {"DD101", "DD203", "DD410", "DD703"}
@@ -359,15 +414,65 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
                 body="## 二、BDD-1 · 甲域（语料 / 语块）\n## 三、BDD-2 · 乙域（档案）\n")),
     )
 
-    print("\n— MAN002 清单 JSON 非法 —")
-    man_bad = TMP / "man-bad.json"
-    man_bad.write_text("{ not json", encoding="utf-8")
-    orig_man2 = vd.MANIFEST
+    print("\n— 前置条件类判定码（三轮 L2 点名的 7 个零覆盖码） —")
+    expect_fail("无 frontmatter → FM000", "FM000",
+                lambda: vd.check_frontmatter(raw("nofm.md", "正文，无 frontmatter\n")))
+    expect_warn("已冻结与待并存 → HF002", "HF002",
+                lambda: vd.check_draft_honesty(doc("t.md", 'status: "已冻结，待补"')))
+    expect_warn("状态表有矩阵但无事件表 → ST002", "ST002",
+                lambda: vd.check_state_table(
+                    raw("04-x.md", "| 初 ＼ 标 | A | B |\n|---|---|---|\n| A | — | — |\n")))
+    # 以下四个码要求「前置文件缺失/损坏」，均以替换模块级路径的方式触发
+    for code, attr, payload, fn in [
+        ("OWN000", "CONTRACT", "{ not json", "load_ownership"),
+        ("FIX000", "FIX_LEDGER", '{"fixes": []}', "check_applied_fixes"),
+        ("MAN000", "MANIFEST", None, "check_content_manifest"),
+        ("RM000", "ROOT", None, "check_readme_index"),
+    ]:
+        holder = TMP / f"missing-{code}"
+        holder.parent.mkdir(exist_ok=True)
+        if payload is not None:
+            holder.write_text(payload, encoding="utf-8")
+        saved = getattr(vd, attr)
+        try:
+            setattr(vd, attr, holder)
+            expect_warn(f"前置文件缺失/损坏 → {code}", code, getattr(vd, fn))
+        finally:
+            setattr(vd, attr, saved)
+
+    print("\n— CNT006 定点声明绑定 —")
+    tgt = TMP / "targeted"
+    tgt.mkdir(exist_ok=True)
+    (tgt / "11-system-flow.md").write_text(
+        "以 2 条补偿条目覆盖\n\n### 9.1 L1 九步\n\n"
+        "| 步骤 | 失败模式 |\n|---|---|\n| 1.1 a | b |\n| 1.2 c | d |\n", encoding="utf-8")
+    (tgt / "13-display-action-response.md").write_text(
+        "共 3 张元素表 ELMT_0101 ELMT_0102 ELMT_0103；引用 DD101、DD102、DD103 共 3 个字段号\n",
+        encoding="utf-8")
+    orig_t = vd.REQ_DIR
+    orig_targeted = vd.TARGETED
     try:
-        vd.MANIFEST = man_bad
-        expect_fail("内容指纹清单 JSON 非法 → MAN002", "MAN002", vd.check_content_manifest)
+        vd.REQ_DIR = tgt
+        expect_pass("定点声明与正文一致", vd.check_targeted_declarations)
+        (tgt / "11-system-flow.md").write_text(
+            "以 9 条补偿条目覆盖\n\n### 9.1 L1 九步\n\n"
+            "| 步骤 | 失败模式 |\n|---|---|\n| 1.1 a | b |\n| 1.2 c | d |\n", encoding="utf-8")
+        expect_fail("补偿条目数声明不符 → CNT006", "CNT006", vd.check_targeted_declarations)
+        (tgt / "11-system-flow.md").write_text(
+            "以 2 条补偿条目覆盖\n\n### 9.1 L1 九步\n\n"
+            "| 步骤 | 失败模式 |\n|---|---|\n| 1.1 a | b |\n| 1.2 c | d |\n", encoding="utf-8")
+        (tgt / "13-display-action-response.md").write_text(
+            "共 3 张元素表 ELMT_0101 ELMT_0102 ELMT_0103；引用 DD101–DD103 共 30 个字段号\n",
+            encoding="utf-8")
+        expect_fail("DD 字段号声明不符 → CNT006（三轮 L2 实测漏过的那类）",
+                    "CNT006", vd.check_targeted_declarations)
+        (tgt / "13-display-action-response.md").write_text(
+            "本文件本轮不声明元素表数\n", encoding="utf-8")
+        expect_warn("未找到声明时须告警而非静默通过", "CNT000",
+                    vd.check_targeted_declarations)
     finally:
-        vd.MANIFEST = orig_man2
+        vd.REQ_DIR = orig_t
+        vd.TARGETED = orig_targeted
 
     # ── 汇总 ──
     print("\n" + "=" * 62)
