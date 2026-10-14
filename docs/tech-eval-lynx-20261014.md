@@ -1,7 +1,7 @@
 ---
 type: Tech Evaluation
 title: "Lynx（Vue 版）选型评估——可行吗、为什么"
-description: "应用户提问评估 vue.lynxjs.org 方案能否作为英语教练 App 的壳层选型。结论：分层可行——iOS/Android/macOS/Windows 四端 Lynx 已一级平台化（3.7 起，Lynxtron 2026-09 发布），但①官方平台列表无 Linux（Ubuntu 断角）②VueLynx 适配 Alpha 且桌面重心在 ReactLynx（Vue×桌面双早期叠加，而本项目 Phase 1 恰需 macOS）③Lynx 定位是嵌入原生应用的 UI 引擎，生产需自建宿主，L4 集成件原生自写量大于 Flutter 插件生态。判决：不替代 Flutter 主选；账本优先架构下壳可替换，VueLynx 桌面进 Beta 后可作 Phase 2 实验分支。"
+description: "应用户提问评估 vue.lynxjs.org 方案能否作为英语教练 App 的壳层选型。评估结论：分层可行——iOS/Android/macOS/Windows 四端 Lynx 已一级平台化（3.7 起，Lynxtron 2026-09 发布），但①官方平台列表无 Linux（Ubuntu 断角）②VueLynx 适配 Alpha 且桌面重心在 ReactLynx（Vue×桌面双早期叠加，而本项目 Phase 1 恰需 macOS）③Lynx 定位是嵌入原生应用的 UI 引擎，生产需自建宿主，L4 集成件原生自写量大于 Flutter 插件生态。**【2026-10-14 goal-keeper 裁决：优先采用 LynxJS，Ubuntu 延后或取消——本评估结论被裁决推翻，三项顾虑转为已接受风险并配对策（app-design v0.3 §三/§九 A11-A12），裁决记录见文末】**"
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
 status: 落盘（网页核实级证据，未实测构建）
@@ -64,3 +64,9 @@ Flutter 对照：五端同一 UI 栈。Lynx 方案下 Ubuntu 必然引入双栈�
 - **维度**：五平台覆盖率（4/5）、L4 集成件成本（Lynx 高于 Flutter 插件生态）、生态成熟度（VueLynx Alpha）、开发者 Vue 熟悉度（未知权重——若强则重估）。
 - **死法**：Phase 1 押 macOS 却落在 VueLynx 桌面早期切片上，工具链/组件缺口在关键路径爆炸；Ubuntu 上线日被迫引入第二栈。
 - **可逆性**：本项目架构下极高——账本优先、壳可替换。因此正确姿势不是「现在二选一」，而是：**Flutter 主选不变，VueLynx 列为跟踪项**（触发条件：VueLynx 桌面进 Beta/Stable，或官方平台列表纳入 Linux），届时在 Phase 2 开 Lynx 实验壳——与 CLI 壳一样，本质是「壳可替换」不变量的又一次实测。
+
+## 裁决记录（2026-10-14，goal-keeper）
+
+**裁决：优先采用 LynxJS 技术栈；Ubuntu 支持延后或取消。**
+
+本评估「不替代 Flutter 主选」的结论被 goal-keeper 裁决推翻——评估所列三项顾虑（Linux 断角 / Vue×桌面双早期 / 宿主自建成本）转为**已接受风险**并工程化承接：对策表与回退路径见 app-design v0.3 §三，新增死法 A11/A12，Phase 1 排序改为 iOS 先行以规避桌面早期风险。裁定权在 goal-keeper；本文件证据与结论保持原样，作为该裁决的风险登记基线——后续周报对照触发条件（VueLynx 桌面 Beta / Lynx 平台列表变动 / L4 自写量超预算）回看本表。

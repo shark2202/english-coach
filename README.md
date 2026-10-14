@@ -19,14 +19,16 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 
 - **阅读顺序**：README → kernel.md（理论内核）→ org-design.md → app-design.md → tech-eval-lynx；
 - 设计文档中 "ai-native 仓" 字样仅为**溯源版本锚**，其机制定义已内嵌于 kernel.md，不访问该仓不影响理解与实施；
-- **验收标准**：在任意机器 clone 本仓，按上述顺序读完即可开工；后续 Flutter 代码、账本 schema、角色提示词配置全部落在本仓；
+- **验收标准**：在任意机器 clone 本仓，按上述顺序读完即可开工；后续 Lynx(Vue) 代码、账本 schema、角色提示词配置全部落在本仓；
 - 设计本身保证 App 将来可独立分发：账本为本地文件契约（App 可整体替换）、BYOK（无账号无服务端依赖）、双模运行（纯单机即完整产品）；
 - **交付前待裁决**：License（MIT / 专有 / 暂不公开）——对外分发前必须定。
 
-## 技术栈（设计决策）
+## 技术栈（设计决策，v0.3 裁决：优先 LynxJS）
 
-- Flutter 单代码库：iOS/macOS 先行 → Ubuntu/Windows/Android
-- 核心层 `coach_core` 纯 Dart 包（零 UI 依赖，可无头测试）；记忆官调度为确定性本地代码
+- **Lynx（Vue 版）单 UI 栈**：iOS/macOS 先行 → Windows/Android；**Ubuntu 延后或取消**（goal-keeper 裁决 2026-10-14）
+- 核心层 `coach_core` **纯 TypeScript** 包（零 UI 依赖，可无头测试）——L1/L2/L3 单语言栈，CLI 壳可直接复用；记忆官调度为确定性本地代码
+- 宿主：桌面 Lynxtron（类 Electron）、移动原生宿主内嵌 Lynx 视图——宿主只做薄桥接
+- **回退路径**：Flutter 壳（账本契约与核心逻辑不变，壳可替换不变量兜底）
 - 账本 = 本地 md/jsonl 文件契约（平台无关，App 可整体替换）
 - AI：BYOK（云 API / 本地 Ollama·MLX），离线判定三级（T0 预嵌 / T1 本地模型 / T2 联网补判）
 - 同步：可选叠加层，iCloud 先行，目录即契约、同步工具可换
@@ -37,6 +39,6 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 
 ## 计划
 
-- **Phase 1**：iOS + macOS MVP（验收 AC 十一条见 app-design §十）
-- **Phase 2**：Android/Windows/Ubuntu 三平台 + CLI 壳（「壳可替换」实测）
+- **Phase 1**：iOS + macOS MVP（VueLynx iOS 先行、macOS（Lynxtron）跟进；验收 AC 十一条见 app-design §十）
+- **Phase 2**：Android/Windows 壳 + Node CLI 壳（直接复用 coach_core，「壳可替换」实测）；Ubuntu 若重启走 Web 产物+薄壳或仅 CLI
 - **Phase 3**：打磨（仪表盘/Widget 全量/语境域商店/自带材料导入）
