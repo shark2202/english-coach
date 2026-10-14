@@ -562,6 +562,79 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     if unchecked:
         print(f"  ⚠ {len(unchecked)} 条绑定未做活性检查（沙箱内无真实文档）：{unchecked[:3]}")
 
+        # ── 「未核查 ≠ 核查通过」通道 ──
+    # 三轮 L2 反复打到同一个根因：把「没查」渲染成「查过且没事」。本轮实测
+    # 到它的另一个入口——把某文档整节删掉，声明随之消失，门禁只留一句
+    # CNT000 告警便退出 0，一份被掏空的文档被判为全绿。故未核查单列通道。
+    print("\n— 未核查通道自检 —")
+    u0 = len(vd.UNCHECKED)
+    vd.unchecked("t.md", "CNT000", "构造：声明找不到")
+    if len(vd.UNCHECKED) > u0 and any("CNT000" in m for m in vd.UNCHECKED[u0:]):
+        PASSED.append("unchecked() 同时写入 UNCHECKED 与 WARN（两通道不混用）")
+    else:
+        BROKEN.append("unchecked() 未写入 UNCHECKED——未核查将再次被渲染成通过")
+    del vd.UNCHECKED[u0:]
+
+    # 端到端：真删一节，main() 必须非零。单元级断言挡不住「exit code 没接上」。
+    # 沙箱必须**整仓复制**（docs/ 全树 + 根级 md）：只复制 requirements/ 会让
+    # LK001 因 ../org-design.md 解析不到而报一堆假 FAIL，退出码被这些无关失败
+    # 撑成 1——那样本用例就成了空断言（变异测试实测证伪过一次）。
+    #
+    # 两条防线，缺一不可：
+    # ① main() 会往 stdout 喷整份报告并写模块级 FAIL/WARN/UNCHECKED/OK——不隔离
+    #    就会污染后续用例。实测：未隔离时 26 个变异点里有 23 个报同一个 LK001
+    #    原因，变异测试被架空成「见红即算捕获」。
+    # ② 光断言「rc != 0」不够——只要沙箱里任何一条无关检查失败，删掉 UNCHECKED
+    #    依赖的变异也能蒙混过关。改用**差分断言**：rc 必须恒等于
+    #    (1 if FAIL or UNCHECKED else 0)。把退出码与判据表达式绑在一起，
+    #    任何一侧被单独改掉都会立刻暴露。
+    import contextlib as _cl, io as _io, shutil as _sh, tempfile as _tf
+    sandbox = Path(_tf.mkdtemp())
+    snapshot = {id(m): list(m) for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK)}
+    try:
+        for name in ("README.md", "AGENTS.md"):
+            if ROOT.joinpath(name).exists():
+                _sh.copy(ROOT / name, sandbox / name)
+        _sh.copytree(ROOT / "docs", sandbox / "docs", dirs_exist_ok=True)
+        saved_root, saved_req = vd.ROOT, vd.REQ_DIR
+        try:
+            vd.ROOT = sandbox
+            vd.REQ_DIR = sandbox / "docs" / "requirements"
+            with _cl.redirect_stdout(_io.StringIO()):
+                for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
+                    del m[:]
+                base_rc = vd.main()
+                base_fail, base_unchk = len(vd.FAIL), len(vd.UNCHECKED)
+                victim = vd.REQ_DIR / "10-data-flow-diagram.md"
+                t10 = victim.read_text(encoding="utf-8")
+                seg = t10.split("## 二、确定流程")[1].split("## 三、")[0]
+                victim.write_text(t10.replace(seg, "\n（整节已删除）\n"), encoding="utf-8")
+                for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
+                    del m[:]
+                rc = vd.main()
+                got_fail, got_unchk = len(vd.FAIL), len(vd.UNCHECKED)
+        finally:
+            vd.ROOT, vd.REQ_DIR = saved_root, saved_req
+
+        if base_rc != 0 or base_fail or base_unchk:
+            BROKEN.append(f"未核查通道用例自身失真：整仓副本基线就非零"
+                          f"（rc={base_rc} FAIL={base_fail} UNCHECKED={base_unchk}）")
+        elif got_unchk == 0:
+            BROKEN.append("删掉整节后 UNCHECKED 仍为 0：声明随节消失时门禁根本"
+                          "没意识到自己没核查")
+        elif rc != (1 if (got_fail or got_unchk) else 0):
+            BROKEN.append(f"退出码与判据脱钩：rc={rc}，而 "
+                          f"FAIL={got_fail} UNCHECKED={got_unchk} 应推出 "
+                          f"{1 if (got_fail or got_unchk) else 0}")
+        else:
+            PASSED.append("删掉整节（含其声明）后 main() 非零退出——空文档不得判全绿")
+    except Exception as e:  # 崩溃不得冒充通过，也不得冒充捕获
+        BROKEN.append(f"未核查通道端到端用例崩溃：{type(e).__name__}: {e}")
+    finally:
+        _sh.rmtree(sandbox, ignore_errors=True)
+        for m in (vd.FAIL, vd.WARN, vd.UNCHECKED, vd.OK):
+            m[:] = snapshot[id(m)]
+
     # ── 汇总 ──
     print("\n" + "=" * 62)
     for m in PASSED:

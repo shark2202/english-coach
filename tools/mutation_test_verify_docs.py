@@ -158,6 +158,16 @@ MUTATIONS: list[tuple[str, str, str]] = [
         "def check_contract_covers_all(own: dict[str, str]) -> None:\n    \"\"\"反向：docs/requirements 下每个文件都必须在契约中被 owns。\"\"\"\n    if not own:",
         "def check_contract_covers_all(own: dict[str, str]) -> None:\n    \"\"\"反向：docs/requirements 下每个文件都必须在契约中被 owns。\"\"\"\n    if True:  # MUTANT",
     ),
+    (
+        "unchecked() 退回纯告警（未核查重新被渲染成核查通过）",
+        "    msg = f\"[{code}] {f}\" + (f\" — {detail}\" if detail else \"\")\n    WARN.append(msg)\n    UNCHECKED.append(msg)",
+        "    msg = f\"[{code}] {f}\" + (f\" — {detail}\" if detail else \"\")\n    WARN.append(msg)\n    pass  # MUTANT",
+    ),
+    (
+        "退出码不再受 UNCHECKED 影响",
+        "    if FAIL or UNCHECKED:",
+        "    if FAIL:  # MUTANT",
+    ),
 ]
 
 

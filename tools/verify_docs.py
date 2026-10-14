@@ -21,6 +21,12 @@ REQ_DIR = ROOT / "docs" / "requirements"
 
 FAIL: list[str] = []
 WARN: list[str] = []
+# 「本次未核查」与「核查通过」必须走两条通道。三轮 L2 打出的同一个根因：
+# `else: ok()` 把「没查」渲染成「查过且没事」。删掉整节时声明随之消失，
+# 门禁只留一句 CNT000 告警便退出 0——一份被掏空的文档被判为全绿。
+# 实测复现：把 10-data-flow-diagram.md 的「## 二、确定流程」整节清空，
+# FAIL=0、退出码 0。故 UNCHECKED 独立计数并直接决定退出码。
+UNCHECKED: list[str] = []
 OK: list[str] = []
 
 
@@ -30,6 +36,18 @@ def fail(f: str, code: str, detail: str = "") -> None:
 
 def warn(f: str, code: str, detail: str = "") -> None:
     WARN.append(f"[{code}] {f}" + (f" — {detail}" if detail else ""))
+
+
+def unchecked(f: str, code: str, detail: str = "") -> None:
+    """本次没有核查——不是「核查通过」，也不是「核查不通过」。
+
+    它同时进 WARN（供人读）与 UNCHECKED（供退出码用）。凡此调用都意味着
+    门禁对这份文档**无法背书**，故默认运行也必须非零退出；只有把整条
+    检查显式关掉才能归零——不能靠「没找到声明」自动放行。
+    """
+    msg = f"[{code}] {f}" + (f" — {detail}" if detail else "")
+    WARN.append(msg)
+    UNCHECKED.append(msg)
 
 
 def ok(msg: str) -> None:
@@ -134,8 +152,8 @@ def check_declared_counts(path: Path) -> None:
     def compare(decl, actual, label, code, unit):
         """decl 为 None 表示 description 里没有可核对的声明——本次未核查。"""
         if decl is None:
-            warn(path.name, "CNT000",
-                 f"description 中未找到「{label}」声明，本次未做核查（实测值 {actual}）")
+            unchecked(path.name, "CNT000",
+                      f"description 中未找到「{label}」声明，本次未做核查（实测值 {actual}）")
         elif int(decl.group(1)) != actual:
             fail(path.name, code, f"声明 {decl.group(1)} {unit}，正文实测 {actual}")
         else:
@@ -649,7 +667,7 @@ def check_targeted_declarations() -> None:
         text = p.read_text(encoding="utf-8")
         m = re.search(pat, text)
         if not m:
-            warn(fname, "CNT000", f"未找到「{label}」的声明，本次未做核查")
+            unchecked(fname, "CNT000", f"未找到「{label}」的声明，本次未做核查")
             continue
         try:
             actual_n = _run_extractor(expr, text)
@@ -710,10 +728,17 @@ def main() -> int:
         for m in WARN:
             print(f"  ! {m}")
 
-    if FAIL:
-        print(f"\nFAIL {len(FAIL)}")
-        for m in FAIL:
-            print(f"  ✗ {m}")
+    if UNCHECKED:
+        print(f"\n未核查 {len(UNCHECKED)}（以下检查本次没有执行，"
+              f"门禁对它们无法背书，按未通过处理）")
+        for m in UNCHECKED:
+            print(f"  ? {m}")
+
+    if FAIL or UNCHECKED:
+        if FAIL:
+            print(f"\nFAIL {len(FAIL)}")
+            for m in FAIL:
+                print(f"  ✗ {m}")
         return 1
 
     print("\n✅ 全绿")
