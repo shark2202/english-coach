@@ -133,6 +133,31 @@ MUTATIONS: list[tuple[str, str, str]] = [
         "if declared_n != actual_n:",
         "if False:  # MUTANT",
     ),
+    (
+        "OWN000 不再告警契约缺失",
+        "if not CONTRACT.exists():",
+        "if False:  # MUTANT",
+    ),
+    (
+        "FIX000 不再告警台账为空",
+        "if not fixes:",
+        "if False:  # MUTANT",
+    ),
+    (
+        "RM000 不再告警 README 缺失",
+        "if not readme.exists():",
+        "if False:  # MUTANT",
+    ),
+    (
+        "FIX002 不再校验证据定义",
+        'if kind not in ("contains", "not_contains") or not needle:',
+        "if False:  # MUTANT",
+    ),
+    (
+        "OWN002 反向检查失效",
+        "def check_contract_covers_all(own: dict[str, str]) -> None:\n    \"\"\"反向：docs/requirements 下每个文件都必须在契约中被 owns。\"\"\"\n    if not own:",
+        "def check_contract_covers_all(own: dict[str, str]) -> None:\n    \"\"\"反向：docs/requirements 下每个文件都必须在契约中被 owns。\"\"\"\n    if True:  # MUTANT",
+    ),
 ]
 
 

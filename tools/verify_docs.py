@@ -231,8 +231,11 @@ CONTRACT = ROOT / "docs" / "swarm" / "contracts" / "batches-06-to-09.json"
 
 
 def load_ownership() -> dict[str, str]:
-    """返回 {文件名: 批次 id}。契约缺失时返回空字典并告警，不误判。"""
+    """返回 {文件名: 批次 id}。契约缺失时返回空字典并**告警**，不静默——
+    「读不到契约」与「契约读到了但没 owns」是两种不同的失败，
+    前者若静默返回 {}，下游会把「无授权」误当成「无需检查」。"""
     if not CONTRACT.exists():
+        warn(CONTRACT.name, "OWN000", "契约文件不存在，OWN 检查将全部跳过")
         return {}
     try:
         c = json.loads(CONTRACT.read_text(encoding="utf-8"))
@@ -457,28 +460,46 @@ def _comp_rows(t: str) -> int:
     return len(re.findall(r"^\|\s*1\.[0-9x]", sec, re.M))
 
 
-def _uniq(t: str, pat: str) -> int:
-    return len(set(re.findall(pat, t)))
-
-
-def _elmt(t: str) -> int:
-    return _uniq(t, r"ELMT_\d{4}")
-
-
 # (文件名, 声明正则（须含一个捕获组）, 提取器, 说明)
-TARGETED: list[tuple[str, str, object, str]] = [
-    ("11-system-flow.md", r"以 (\d+) 条补偿条目覆盖", _comp_rows,
-     "§9.1 + §9.2 补偿条目数（此处出过 32 / 40 / 31 三次错）"),
-    ("13-display-action-response.md", r"(\d+) 张元素表", _elmt,
-     "去重后的 ELMT 元素表数"),
+# 提取器写���**表达式字符串**而非函数，便于直接采纳 `docs/swarm/contracts/proposals/`
+# 下的提案文件——提案由域 agent 逐条自证过反证后才进入本表。
+# 信任边界：表达式来自本仓经判别器复核的提案文件，不接受任何外部输入；
+# `_SAFE_EVAL` 只暴露 re/len/set/sorted/max/min/abs/sum/round，且拒绝含
+# `import`、`__` 的表达式。它决定「是否可数」，不决定「数出什么值」——
+# 一个写错的表达式只会误报或漏报，不会执行任意代码。
+TARGETED: list[tuple[str, str, str, str]] = [
+    ("11-system-flow.md", r"以 (\d+) 条补偿条目覆盖",
+     "_comp_rows(t)", "§9.1 + §9.2 补偿条目数（此处出过 32 / 40 / 31 三次错）"),
+    ("13-display-action-response.md", r"(\d+) 张元素表",
+     "len(set(re.findall(r'ELMT_[0-9]{4}', t)))", "去重后的 ELMT 元素表数"),
     ("13-display-action-response.md", r"共 (\d+) 个字段号",
-     lambda t: _uniq(t, r"DD\d{3}"), "去重后的 DD 引用数"),
+     "len(set(re.findall(r'DD[0-9]{3}', t)))", "去重后的 DD 引用数"),
 ]
+
+
+def _comp_rows(t: str) -> int:
+    """11 的 §9.1 + §9.2 补偿条目行数（行首形如 `| 1.1 校验账本可用性 |`）。"""
+    if "### 9.1" not in t:
+        return 0
+    sec = t.split("### 9.1", 1)[1]
+    return len(re.findall(r"^\|\s*1\.[0-9x]", sec, re.M))
+
+
+_SAFE_EVAL = {"re": re, "len": len, "set": set, "sorted": sorted,
+              "max": max, "min": min, "abs": abs, "sum": sum, "round": round,
+              "_comp_rows": _comp_rows}
+
+
+def _run_extractor(expr: str, text: str):
+    """在受限命名空间里求值提取器表达式。"""
+    if "import" in expr or "__" in expr:
+        raise ValueError(f"提取器表达式含不允许的构造：{expr[:40]}")
+    return eval(expr, {"__builtins__": {}}, {**_SAFE_EVAL, "t": text})  # noqa: S307
 
 
 def check_targeted_declarations() -> None:
     checked = 0
-    for fname, pat, extractor, label in TARGETED:
+    for fname, pat, expr, label in TARGETED:
         p = REQ_DIR / fname
         if not p.exists():
             warn(fname, "CNT006", "文件不存在，定点声明绑定无法执行")
@@ -488,8 +509,12 @@ def check_targeted_declarations() -> None:
         if not m:
             warn(fname, "CNT000", f"未找到「{label}」的声明，本次未做核查")
             continue
+        try:
+            actual_n = _run_extractor(expr, text)
+        except Exception as e:  # 提取器自身坏了——必须报，不能静默跳过
+            fail(fname, "CNT007", f"提取器执行失败：{type(e).__name__}（{expr[:40]}）")
+            continue
         declared_n = int(m.group(1))
-        actual_n = extractor(text)  # type: ignore[operator]
         if declared_n != actual_n:
             fail(fname, "CNT006", f"声明 {label} {declared_n}，正文实测 {actual_n}")
         else:

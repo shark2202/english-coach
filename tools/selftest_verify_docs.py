@@ -37,9 +37,26 @@ def codes(new_fails: list[str]) -> list[str]:
     return [m.split("]", 1)[0].lstrip("[") for m in new_fails]
 
 
+def _guard(name: str, fn) -> str | None:
+    """执行一个用例体并捕获异常。
+
+    ⚠️ 变异测试逼出这个函数：某个检查抛异常会让整轮 selftest 中断，
+    **连「门禁失灵」报告都出不来**——崩溃既不能冒充捕获，也不该让 harness 失声。
+    这里把异常记成显式失败，于是「检查自身被变异搞崩」会立刻显示为一条失灵项。
+    """
+    try:
+        fn()
+        return None
+    except Exception as e:  # noqa: BLE001 — harness 必须吞掉一切
+        return f"{type(e).__name__}: {e}"
+
+
 def expect_fail(name: str, code: str, fn) -> None:
     f0, w0 = len(vd.FAIL), len(vd.WARN)
-    fn()
+    crashed = _guard(name, fn)
+    if crashed:
+        BROKEN.append(f"{name} → 期望拦截 {code}，但检查抛异常（{crashed[:70]}）")
+        return
     got = codes(vd.FAIL[f0:])
     if code in got:
         PASSED.append(f"{name} → 正确拦截 {code}")
@@ -51,7 +68,10 @@ def expect_warn(name: str, code: str, fn) -> None:
     """前置条件缺失类判定走 warn() 而非 fail()——它们报告「兜底失效」，
     不是「产物有错」。误报它们等于把兜底告警降级成噪声。"""
     f0, w0 = len(vd.FAIL), len(vd.WARN)
-    fn()
+    crashed = _guard(name, fn)
+    if crashed:
+        BROKEN.append(f"{name} → 期望告警 {code}，但检查抛异常（{crashed[:70]}）")
+        return
     got = [m.split("]", 1)[0].lstrip("[") for m in vd.WARN[w0:]]
     if code in got:
         PASSED.append(f"{name} → 正确告警 {code}")
@@ -61,7 +81,10 @@ def expect_warn(name: str, code: str, fn) -> None:
 
 def expect_pass(name: str, fn) -> None:
     f0, w0 = len(vd.FAIL), len(vd.WARN)
-    fn()
+    crashed = _guard(name, fn)
+    if crashed:
+        BROKEN.append(f"{name} → 正例被检查抛异常（{crashed[:70]}）")
+        return
     got = codes(vd.FAIL[f0:])
     if got:
         BROKEN.append(f"{name} → 正例被误报 {','.join(got)}")
@@ -473,6 +496,15 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     finally:
         vd.REQ_DIR = orig_t
         vd.TARGETED = orig_targeted
+
+    # OWN000 的两个分支必须分别测：exists() 分支与 JSON 解析分支。
+    # 只测后者的话，把 exists() 判定关掉对结果毫无影响——变异测试实测过这一处逃逸。
+    saved_contract = vd.CONTRACT
+    try:
+        vd.CONTRACT = TMP / "绝对不存在的契约.json"
+        expect_warn("契约文件不存在 → OWN000（exists 分支）", "OWN000", vd.load_ownership)
+    finally:
+        vd.CONTRACT = saved_contract
 
     # ── 汇总 ──
     print("\n" + "=" * 62)
