@@ -368,10 +368,12 @@ def declared_hashes() -> dict[str, set[str]]:
     """从 applied-fixes 台账收集各文件的合法新指纹。"""
     out: dict[str, set[str]] = {}
     if not FIX_LEDGER.exists():
+        warn(FIX_LEDGER.name, "FIX000", "台账不存在，无法采集已申报的新指纹")
         return out
     try:
         data = json.loads(FIX_LEDGER.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        warn(FIX_LEDGER.name, "FIX002", f"台账 JSON 非法，无法采集新指纹：{e}")
         return out
     for fx in data.get("fixes", []):
         h = fx.get("new_sha256")
@@ -421,12 +423,14 @@ DD_DICT = REQ_DIR / "03-data-dictionary.md"
 
 def defined_dd_ids() -> set[str]:
     if not DD_DICT.exists():
+        warn(DD_DICT.name, "REF000", "数据字典不存在，DD 引用有效性检查将全部跳过")
         return set()
     return set(re.findall(r"^\|\s*(DD\d{3})\s*\|", DD_DICT.read_text(encoding="utf-8"), re.M))
 
 
 def check_dd_references(dd_defs: set[str]) -> None:
     if not dd_defs:
+        warn("DD 引用有效性", "REF000", "可用的 DD 编号集为空，本次未做核查")
         return
     dangling_total = 0
     for p in sorted(REQ_DIR.glob("*.md")):
@@ -451,14 +455,6 @@ def check_dd_references(dd_defs: set[str]) -> None:
 # 每个提取器单独可回归、误报率单独计量。判别器用 3 条提取器当场查出了
 # 「13 声明共 30 个字段号、实测 28」这条 L1 三层全绿漏过的缺陷。
 # 扩展方式：新增一行绑定，并**同时为它补一条负例进自审套件**。
-
-def _comp_rows(t: str) -> int:
-    """11 的 §9.1 + §9.2 补偿条目行数（行首形如 `| 1.1 校验账本可用性 |`）。"""
-    if "### 9.1" not in t:
-        return 0
-    sec = t.split("### 9.1", 1)[1]
-    return len(re.findall(r"^\|\s*1\.[0-9x]", sec, re.M))
-
 
 # (文件名, 声明正则（须含一个捕获组）, 提取器, 说明)
 # 提取器写���**表达式字符串**而非函数，便于直接采纳 `docs/swarm/contracts/proposals/`

@@ -506,6 +506,21 @@ def main() -> int:  # noqa: C901 — 测试函数，逐条平铺比抽象更易�
     finally:
         vd.CONTRACT = saved_contract
 
+    # 系统性审计补的三条静默跳过路径（与 else:ok() 同族）：契约、台账、数据字典
+    saved_led, saved_dd = vd.FIX_LEDGER, vd.DD_DICT
+    try:
+        vd.FIX_LEDGER = TMP / "绝对不存在的台账.json"
+        expect_warn("台账不存在 → 采集新指纹时须告警", "FIX000", vd.declared_hashes)
+        vd.FIX_LEDGER = TMP / "坏台账.json"
+        (TMP / "坏台账.json").write_text("{ nope", encoding="utf-8")
+        expect_warn("台账 JSON 非法 → 采集新指纹时须告警", "FIX002", vd.declared_hashes)
+        vd.DD_DICT = TMP / "绝对不存在的数据字典.md"
+        expect_warn("数据字典缺失 → REF000", "REF000", vd.defined_dd_ids)
+        expect_warn("DD 编号集为空时须说明未核查", "REF000",
+                    lambda: vd.check_dd_references(set()))
+    finally:
+        vd.FIX_LEDGER, vd.DD_DICT = saved_led, saved_dd
+
     # ── 汇总 ──
     print("\n" + "=" * 62)
     for m in PASSED:
