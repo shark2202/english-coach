@@ -1,0 +1,147 @@
+.Root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: #14110f;
+  padding: 16px;
+}
+
+.TabBar {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.Tab {
+  font-size: 14px;
+  color: #8b8178;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #221d19;
+}
+
+.Tab--on {
+  color: #f2ede7;
+  background-color: #3a3129;
+}
+
+/* ---- macOS 三栏（app-design §5.2）---- */
+.Mac {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 12px;
+}
+
+.Col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: #1d1916;
+}
+
+.Col--left { width: 150px; }
+.Col--mid { flex: 1; }
+.Col--right { width: 150px; }
+
+.ColTitle {
+  font-size: 12px;
+  color: #6f665e;
+  margin-bottom: 4px;
+}
+
+.Row {
+  font-size: 13px;
+  color: #b8aea4;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.Row--on {
+  color: #f2ede7;
+  background-color: #2c251f;
+}
+
+.Row--warn { color: #d9a441; }
+
+/* ---- 衬线阅读区（长文专业英语 = 本产品本体）---- */
+.Reading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #1a1613;
+}
+
+.Prose {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  font-size: 17px;
+  line-height: 28px;
+  letter-spacing: 0.2px;
+  color: #e8e1d9;
+  /* 行宽约束：阅读区不超过约 34em */
+  max-width: 34em;
+}
+
+.Prose--ios {
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.Gloss {
+  font-size: 13px;
+  line-height: 21px;
+  color: #9a8f85;
+  max-width: 34em;
+}
+
+.GlossTerm {
+  color: #c9a86a;
+  font-style: italic;
+}
+
+/* ---- iOS 会话流（app-design §5.1）---- */
+.IOS {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+}
+
+.Bubble {
+  padding: 14px;
+  border-radius: 14px;
+  background-color: #1e1a16;
+}
+
+.Bubble--user {
+  align-self: flex-end;
+  background-color: #2b3a33;
+  max-width: 80%;
+}
+
+.InvokeBar {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding-top: 12px;
+  border-top-width: 1px;
+  border-top-color: #2c251f;
+}
+
+.Invoke {
+  font-size: 14px;
+  color: #b8aea4;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: #221d19;
+}
+
+.Invoke--primary {
+  color: #14110f;
+  background-color: #c9a86a;
+}

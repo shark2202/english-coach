@@ -6,7 +6,7 @@ description: "RML 22 模型之生态图（Visual Models for Software Requirement
 model_source: "visual-models-requirements-skill / references/capabilities/ecosystem-map.md（见技能目录）"
 project: english-coach
 timestamp: 2026-10-14T00:00:00+08:00
-status: 草稿（批次 5 上半；接口逐字段见 08-system-interface-table.md）
+status: 草稿（批次 5 上半；接口逐字段见 09-system-interface-table.md）
 ---
 
 # 生态图 v0.1
@@ -145,4 +145,4 @@ B0 档（纯听/影子跟读）完全依赖音频。若 TTS 不可用，**B0 整
 1. **B0 档 TTS 失效路径**未建模（§4.2）→ 移交批次 9。
 2. **chunk-ledger 冲突消解策略**（行级 LWW 是否允许静默丢一方）与 §4.3 的「宁可重复不可丢失」冲突 → 与批次 9 共同裁决。
 3. **同步游标的业务/技术定级**（BDD v0.1 §七 遗留）在本图得到部分回答：同步走组 4，属**可选叠加层**——但「同步状态四态」中的「同步失败」是**学习者可见的业务状态**，故同步游标仍保留为业务对象 ✅ 结论：**保留为业务数据对象**。
-4. 接口逐字段定义见 `08-system-interface-table.md`。
+4. 接口逐字段定义见 `09-system-interface-table.md`。
