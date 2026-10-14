@@ -20,7 +20,7 @@ AI 英语学习教练——碎片时间语感训练。独立项目。
 - [docs/requirements/00-business-objectives.md](docs/requirements/00-business-objectives.md) —— 业务目标模型 BOM v0.3（**已冻结**）：四层问题下钻（含 P4 画像漂移）、G0–G4 数字目标、产品概念 F1–F8、SM1–SM6 成功标准、拟新增死法 D9/A13
 - [docs/requirements/01-feature-tree.md](docs/requirements/01-feature-tree.md) —— 特性树 v0.2（草稿）：9 个 L1 / 49 个 L2 特性全范围全景，含「能力建模」横切分支；待批次 6/7/8 交叉校验
 - [docs/requirements/02-business-data-diagram.md](docs/requirements/02-business-data-diagram.md) —— 业务数据图 BDD v0.1（草稿）：4 张分域图 / 21 个业务数据对象 / 21 条关系，含 3 条**刻意非 1:1** 的关键基数
-- [docs/requirements/03-data-dictionary.md](docs/requirements/03-data-dictionary.md) —— 数据字典 v0.2（草稿）：7 个关键对象 69 个字段 + 12 组共享列表 + 3 个派生公式；v0.2 依状态表回写两处修正
+- [docs/requirements/03-data-dictionary.md](docs/requirements/03-data-dictionary.md) —— 数据字典 v0.2（草稿）：7 个关键对象 63 个字段 + 12 组共享列表 + 3 个派生公式；v0.2 依状态表回写两处修正
 - [docs/requirements/04-state-table.md](docs/requirements/04-state-table.md) —— 状态表 v0.1（草稿）：8 个对象生命周期 N×N 穷举，含 **5 条必须保留的复活路径**与 2 处对既有设计的修正
 - [docs/requirements/05-state-diagram.md](docs/requirements/05-state-diagram.md) —— 状态图 v0.1（草稿）：5 张生命周期图 + 跨对象合并视图，含错题自我修正闭环与判定全链路
 - [docs/requirements/06-decision-table.md](docs/requirements/06-decision-table.md) —— 决策表 v0.1（草稿）：3 张表覆盖判定级别选择 / 难度锚升降 / 语境域多样性下限，列数均按选择数乘积机械校验
